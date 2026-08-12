@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="100%" height="100%">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#3D2318" />
+      <stop offset="100%" stop-color="#2B1810" />
+    </linearGradient>
+    <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#F3E5AB" />
+      <stop offset="50%" stop-color="#D4AF37" />
+      <stop offset="100%" stop-color="#AA7C11" />
+    </linearGradient>
+  </defs>
+
+  <!-- Background Card -->
+  <rect width="512" height="512" rx="128" fill="url(#bgGrad)" />
+  
+  <!-- Outer Gold Ring -->
+  <circle cx="256" cy="256" r="216" fill="none" stroke="url(#goldGrad)" stroke-width="16" />
+
+  <!-- Cake Icon -->
+  <g transform="translate(106, 116)">
+    <!-- Base Layer -->
+    <path d="M40 200 H260 V260 C260 270 250 280 240 280 H60 C50 280 40 270 40 260 Z" fill="url(#goldGrad)" />
+    
+    <!-- Middle Layer -->
+    <path d="M60 140 H240 V200 H60 Z" fill="#F8E7EA" stroke="url(#goldGrad)" stroke-width="6" />
+    
+    <!-- Top Frosting Drips -->
+    <path d="M80 90 H220 V140 C200 150 180 135 160 145 C140 135 120 150 100 140 C90 140 80 130 80 120 Z" fill="url(#goldGrad)" />
+    
+    <!-- Candles / Cherry Stars -->
+    <circle cx="150" cy="55" r="16" fill="#D65B78" />
+    <path d="M150 25 L150 40" stroke="url(#goldGrad)" stroke-width="8" stroke-linecap="round" />
+    <circle cx="110" cy="70" r="12" fill="#D65B78" />
+    <circle cx="190" cy="70" r="12" fill="#D65B78" />
+  </g>
+</svg>

@@ -1,0 +1,79 @@
+@import "tailwindcss";
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    -webkit-tap-highlight-color: transparent;
+  }
+  
+  body {
+    background-color: #FAF6F0;
+    color: #2B1810;
+    font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+    overflow-x: hidden;
+  }
+}
+
+/* Custom DINORA Theme Variables & Utilities */
+:root {
+  --color-dinora-bg: #FAF6F0;
+  --color-dinora-mocha: #2B1810;
+  --color-dinora-berry: #D65B78;
+  --color-dinora-berry-light: #F8E7EA;
+  --color-dinora-gold: #CBB279;
+  --color-dinora-gold-bright: #D4AF37;
+  --color-dinora-taupe: #6B5B52;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #FAF6F0;
+}
+::-webkit-scrollbar-thumb {
+  background: #CBB279;
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #D65B78;
+}
+
+/* Glassmorphism & Surface Utilities */
+.glass-card {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(43, 24, 16, 0.06);
+}
+
+.gold-gradient-text {
+  background: linear-gradient(135deg, #B89649 0%, #E8D397 50%, #CBB279 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.gold-border-glow {
+  border: 1.5px solid #CBB279;
+  box-shadow: 0 0 15px rgba(203, 178, 121, 0.25);
+}
+
+.shadow-dinora-subtle {
+  box-shadow: 0 4px 20px -2px rgba(43, 24, 16, 0.06), 0 2px 6px -1px rgba(43, 24, 16, 0.04);
+}
+
+.shadow-dinora-glow {
+  box-shadow: 0 10px 30px -5px rgba(214, 91, 120, 0.25);
+}
+
+.shadow-dinora-gold {
+  box-shadow: 0 10px 30px -5px rgba(203, 178, 121, 0.3);
+}
+
+/* Telegram Native Feel */
+.twa-active-press:active {
+  transform: scale(0.97);
+  transition: transform 0.1s ease;
+}

@@ -127,6 +127,7 @@ export class OrderService {
         const { Bot } = await import('grammy');
         const bot = new Bot(env.BOT_TOKEN);
         const tgId = Number(updatedOrder.user.telegramId);
+        const isPickup = updatedOrder.deliveryType === 'PICKUP';
 
         let statusText = '';
         if (mappedStatus === 'APPROVED') {
@@ -136,9 +137,13 @@ export class OrderService {
         } else if (mappedStatus === 'PREPARING') {
           statusText = `👨‍🍳 **Buyurtmangiz tayyorlanmoqda!**`;
         } else if (mappedStatus === 'DELIVERING') {
-          statusText = `🚖 **Buyurtmangiz yo'lga chiqdi!**`;
+          statusText = `🚖 **Buyurtmangiz yo'lga chiqdi!** Kuting.`;
         } else if (mappedStatus === 'COMPLETED') {
-          statusText = `🎉 **Buyurtma muvaffaqiyatli topshirildi!** Yoqimli ishtaha!`;
+          if (isPickup) {
+            statusText = `🎂 **Buyurtmangiz tayyor!** Do'konimizdan kelib olib ketishingiz mumkin.`;
+          } else {
+            statusText = `🎉 **Buyurtmangiz yetkazib berildi!** Yoqimli ishtaha!`;
+          }
         }
 
         if (statusText) {

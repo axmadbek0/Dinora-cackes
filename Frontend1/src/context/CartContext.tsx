@@ -122,7 +122,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const toggleCart = () => {
     triggerHaptic('light');
-    setIsCartOpen(prev => !prev);
+    setIsCartOpen(!isCartOpen);
   };
 
   return (

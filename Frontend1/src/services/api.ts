@@ -7,7 +7,6 @@ import type {
   CustomCakeOrder,
   CreateCustomCakePayload,
   ApiResponse,
-  OrderStatus,
   SystemSettingDto,
 } from '../types';
 import {
@@ -98,7 +97,7 @@ export const createOrder = async (payload: CreateOrderPayload): Promise<Order> =
     const newOrder: Order = {
       id: `ord-${Date.now().toString().slice(-4)}`,
       orderNumber: Math.floor(1000 + Math.random() * 9000),
-      status: OrderStatus.AWAITING_RECEIPT,
+      status: 'AWAITING_RECEIPT',
       deliveryType: 'DELIVERY', // Hardcode or infer
       deliveryAddress: `Sirdaryo tumani, ${payload.mahalla}, ${payload.street}, ${payload.houseNumber}`,
       latitude: null,

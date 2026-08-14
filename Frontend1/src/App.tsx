@@ -17,6 +17,7 @@ import { ContactSection } from './components/contact/ContactSection';
 import { Footer } from './components/layout/Footer';
 import { FloatingCartButton } from './components/layout/FloatingCartButton';
 import { OrderTrackingModal } from './components/orderTracking/OrderTrackingModal';
+import { LiveOrderNotifier } from './components/orderTracking/LiveOrderNotifier';
 import { fetchProducts } from './services/api';
 import type { FilterCategory, Product } from './types';
 import { Cake, Sparkles } from 'lucide-react';
@@ -250,6 +251,9 @@ const MainStorefront: React.FC = () => {
       <ConnectedCartFullScreenModal onOrderCreated={() => {
         setIsOrderTrackOpen(true);
       }} />
+
+      {/* Live Realtime Web Notification Banner */}
+      <LiveOrderNotifier />
 
       {/* Order Tracking Modal */}
       <OrderTrackingModal

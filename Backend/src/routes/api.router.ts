@@ -7,6 +7,7 @@ import { SettingController } from '../modules/settings/setting.controller.js';
 import { AnalyticsController } from '../modules/analytics/analytics.controller.js';
 import { PaymentController } from '../modules/payment/payment.controller.js';
 import { BlockedDateController } from '../modules/blocked-dates/blocked-date.controller.js';
+import { UserController } from '../modules/users/user.controller.js';
 import { validate } from '../middlewares/validation.js';
 import { authenticateJWT, requireAdmin } from '../middlewares/auth.middleware.js';
 import { authRateLimiter } from '../middlewares/rate-limiter.middleware.js';
@@ -55,6 +56,13 @@ apiRouter.delete('/blocked-dates/:date', authenticateJWT, requireAdmin, asyncHan
 // --- Analytics API (Protected: Admin Only) ---
 apiRouter.get('/analytics/summary', authenticateJWT, requireAdmin, asyncHandler(analyticsController.getSummary));
 apiRouter.get('/analytics/dashboard', authenticateJWT, requireAdmin, asyncHandler(analyticsController.getDashboard));
+
+// --- Users Management API (Protected: Admin Only) ---
+const userController = new UserController();
+apiRouter.get('/users', authenticateJWT, requireAdmin, asyncHandler(userController.getUsers));
+apiRouter.get('/users/:id', authenticateJWT, requireAdmin, asyncHandler(userController.getUserById));
+apiRouter.patch('/users/:id/role', authenticateJWT, requireAdmin, asyncHandler(userController.updateUserRole));
+apiRouter.delete('/users/:id', authenticateJWT, requireAdmin, asyncHandler(userController.deleteUser));
 
 // --- Product Catalog API ---
 apiRouter.get(

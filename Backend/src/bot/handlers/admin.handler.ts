@@ -122,10 +122,15 @@ adminHandler.callbackQuery(/^admin_set_status_(.+)_(PREPARING|DELIVERING|COMPLET
   // Notify user about status update
   try {
     const userTelegramId = Number(updatedOrder.user.telegramId);
+    const isPickup = updatedOrder.deliveryType === 'PICKUP';
+    const completedMsg = isPickup
+      ? `🎂 **Buyurtmangiz (№${updatedOrder.orderNumber}) tayyor!** Do'konimizdan kelib olib ketishingiz mumkin.`
+      : `🎉 **Buyurtmangiz (№${updatedOrder.orderNumber}) yetkazib berildi!** Yoqimli ishtaha! DINORA shirinliklarini tanlaganingiz uchun rahmat! ❤️`;
+
     const userMessages: Record<string, string> = {
       PREPARING: `👩‍🍳 **Buyurtmangiz tayyorlanmoqda!** (№${updatedOrder.orderNumber})\nKonditerlarimiz mazali ta'mni tayyorlamoqda!`,
       DELIVERING: `🚖 **Buyurtmangiz yo'lga chiqdi!** (№${updatedOrder.orderNumber})\nKuryerimiz Sirdaryo tumani bo'ylab yo'lda.`,
-      COMPLETED: `🎉 **Buyurtmangiz yetkazib berildi!** (№${updatedOrder.orderNumber})\nYoqimli ishtaha! DINORA shirinliklarini tanlaganingiz uchun rahmat! ❤️`,
+      COMPLETED: completedMsg,
       CANCELED: `❌ Buyurtmangiz (№${updatedOrder.orderNumber}) bekor qilindi.`,
     };
     await ctx.api.sendMessage(userTelegramId, userMessages[newStatus], { parse_mode: 'Markdown' });

@@ -39,13 +39,16 @@ export const ProductModal: React.FC<ProductModalProps> = ({
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
+    const validCats = categories.filter((c) => c.id !== 'cat-all');
+    const defaultCatId = validCats[0]?.id || 'cat-1';
+
     if (product) {
       setName(product.name || (product as any).title || '');
       setDescription(product.description || '');
       setPrice(String(product.price));
       setImageUrl(product.imageUrl || '');
       setImagePreview(product.imageUrl || null);
-      setCategoryId(product.categoryId || categories[0]?.id || '');
+      setCategoryId(product.categoryId && product.categoryId !== 'cat-all' ? product.categoryId : defaultCatId);
       setIsAvailable(product.isAvailable ?? true);
       setImageMode(product.imageUrl ? 'url' : 'url');
     } else {
@@ -54,7 +57,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({
       setPrice('');
       setImageUrl('');
       setImagePreview(null);
-      setCategoryId(categories[0]?.id || '');
+      setCategoryId(defaultCatId);
       setIsAvailable(true);
       setImageMode('url');
     }

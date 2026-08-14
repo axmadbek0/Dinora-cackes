@@ -32,4 +32,9 @@ export const ENDPOINTS = {
     DASHBOARD: '/analytics/dashboard',
     SUMMARY: '/analytics/summary',
   },
+  USERS: {
+    BASE: '/users',
+    BY_ID: (id: string) => `/users/${id}`,
+    UPDATE_ROLE: (id: string) => `/users/${id}/role`,
+  },
 };

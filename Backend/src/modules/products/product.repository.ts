@@ -1,45 +1,33 @@
 import { prisma } from '../../config/database.js';
 import { CreateProductDTO, UpdateProductDTO } from './product.schema.js';
-
-const MOCK_CATEGORIES = [
-  { id: 'cat-1', name: 'Tortlar', slug: 'tortlar', isActive: true, createdAt: new Date(), updatedAt: new Date() },
-  { id: 'cat-2', name: 'Pirojnoelar', slug: 'pirojnoelar', isActive: true, createdAt: new Date(), updatedAt: new Date() },
-  { id: 'cat-3', name: 'Pechenelar', slug: 'pechenelar', isActive: true, createdAt: new Date(), updatedAt: new Date() },
-];
-
-const MOCK_PRODUCTS: any[] = [
-  {
-    id: 'prod-1',
-    name: 'Shokoladli Medovik',
-    description: "Tabiiy asal va shokoladli sous bilan tayyorlangan mayin medovik torti",
-    price: 185000,
-    imageUrl: 'https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=600&auto=format&fit=crop&q=80',
-    isAvailable: true,
-    categoryId: 'cat-1',
-    category: MOCK_CATEGORIES[0],
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  },
-  {
-    id: 'prod-2',
-    name: 'Pistachili Ekler Set',
-    description: "Krem-bryule va tabiiy pista pastasi to'ldirilgan 6 talik ekler to'plami",
-    price: 120000,
-    imageUrl: 'https://images.unsplash.com/photo-1603532648955-039310d9ed75?w=600&auto=format&fit=crop&q=80',
-    isAvailable: true,
-    categoryId: 'cat-2',
-    category: MOCK_CATEGORIES[1],
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  },
-];
+import { ProductFileStore } from '../../utils/product-file-store.js';
 
 export class ProductRepository {
+  private async ensureCategoriesExist() {
+    try {
+      const count = await prisma.category.count();
+      if (count === 0) {
+        await prisma.category.createMany({
+          data: [
+            { id: 'cat-1', name: 'Tortlar', slug: 'tortlar', isActive: true },
+            { id: 'cat-2', name: 'Pirojniylar', slug: 'pirojniylar', isActive: true },
+            { id: 'cat-3', name: 'Art Desertlar', slug: 'art-desertlar', isActive: true },
+            { id: 'cat-4', name: 'Korpus Pirojniylar', slug: 'korpus-pirojniylar', isActive: true },
+          ],
+          skipDuplicates: true,
+        });
+      }
+    } catch (err) {
+      // Ignored if DB offline
+    }
+  }
+
   async findAll(filter: { categoryId?: string; isAvailable?: boolean; search?: string }) {
     try {
+      await this.ensureCategoriesExist().catch(() => {});
       const where: any = {};
       
-      if (filter.categoryId) {
+      if (filter.categoryId && filter.categoryId !== 'cat-all') {
         where.categoryId = filter.categoryId;
       }
       
@@ -62,11 +50,19 @@ export class ProductRepository {
         orderBy: { createdAt: 'desc' },
       });
     } catch (err) {
-      let filtered = [...MOCK_PRODUCTS];
-      if (filter.categoryId) {
-        filtered = filtered.filter((p) => p.categoryId === filter.categoryId);
+      // DB offline fallback: persistent file store
+      let products = ProductFileStore.getProducts();
+      if (filter.categoryId && filter.categoryId !== 'cat-all') {
+        products = products.filter((p) => p.categoryId === filter.categoryId);
       }
-      return filtered;
+      if (typeof filter.isAvailable === 'boolean') {
+        products = products.filter((p) => p.isAvailable === filter.isAvailable);
+      }
+      if (filter.search) {
+        const q = filter.search.toLowerCase();
+        products = products.filter((p) => p.name.toLowerCase().includes(q) || p.description?.toLowerCase().includes(q));
+      }
+      return products;
     }
   }
 
@@ -77,59 +73,56 @@ export class ProductRepository {
         include: { category: true },
       });
     } catch (err) {
-      return MOCK_PRODUCTS.find((p) => p.id === id) || null;
+      const products = ProductFileStore.getProducts();
+      return products.find((p) => p.id === id) || null;
     }
   }
 
   async create(data: CreateProductDTO) {
     try {
+      await this.ensureCategoriesExist().catch(() => {});
+
+      let categoryId = data.categoryId;
+      if (!categoryId || categoryId === 'cat-all') {
+        const firstCat = await prisma.category.findFirst();
+        if (firstCat) categoryId = firstCat.id;
+      }
+
       return await prisma.product.create({
         data: {
           name: data.name,
-          description: data.description,
+          description: data.description || '',
           price: data.price,
-          imageUrl: data.imageUrl,
+          imageUrl: data.imageUrl || '',
           isAvailable: data.isAvailable ?? true,
-          categoryId: data.categoryId,
+          categoryId: categoryId || 'cat-1',
         },
         include: { category: true },
       });
     } catch (err) {
-      const newProduct: any = {
-        id: `prod-${Date.now()}`,
-        name: data.name,
-        description: data.description || '',
-        price: data.price,
-        imageUrl: data.imageUrl || '',
-        isAvailable: data.isAvailable ?? true,
-        categoryId: data.categoryId,
-        category: MOCK_CATEGORIES.find((c) => c.id === data.categoryId) || MOCK_CATEGORIES[0],
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      };
-      MOCK_PRODUCTS.unshift(newProduct);
-      return newProduct;
+      // DB offline fallback: create in persistent disk store
+      console.warn('PostgreSQL DB connection error, saving product to persistent disk store');
+      return ProductFileStore.createProduct(data);
     }
   }
 
   async update(id: string, data: UpdateProductDTO) {
     try {
+      const updateData: any = {};
+      if (data.name !== undefined) updateData.name = data.name;
+      if (data.description !== undefined) updateData.description = data.description;
+      if (data.price !== undefined) updateData.price = data.price;
+      if (data.imageUrl !== undefined) updateData.imageUrl = data.imageUrl;
+      if (data.isAvailable !== undefined) updateData.isAvailable = data.isAvailable;
+      if (data.categoryId !== undefined && data.categoryId !== 'cat-all') updateData.categoryId = data.categoryId;
+
       return await prisma.product.update({
         where: { id },
-        data,
+        data: updateData,
         include: { category: true },
       });
     } catch (err) {
-      const index = MOCK_PRODUCTS.findIndex((p) => p.id === id);
-      if (index !== -1) {
-        MOCK_PRODUCTS[index] = {
-          ...MOCK_PRODUCTS[index],
-          ...data,
-          price: data.price !== undefined ? data.price : MOCK_PRODUCTS[index].price,
-        };
-        return MOCK_PRODUCTS[index];
-      }
-      throw err;
+      return ProductFileStore.updateProduct(id, data);
     }
   }
 
@@ -143,24 +136,21 @@ export class ProductRepository {
         where: { id },
       });
     } catch (err) {
-      const index = MOCK_PRODUCTS.findIndex((p) => p.id === id);
-      if (index !== -1) {
-        MOCK_PRODUCTS.splice(index, 1);
-      }
-      return { id };
+      return ProductFileStore.deleteProduct(id);
     }
   }
 
   async findAllCategories() {
     try {
+      await this.ensureCategoriesExist().catch(() => {});
       const categories = await prisma.category.findMany({
         where: { isActive: true },
         orderBy: { name: 'asc' },
       });
       if (categories.length > 0) return categories;
-      return MOCK_CATEGORIES;
+      return ProductFileStore.getCategories();
     } catch (err) {
-      return MOCK_CATEGORIES;
+      return ProductFileStore.getCategories();
     }
   }
 }

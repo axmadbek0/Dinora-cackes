@@ -4,6 +4,11 @@ import { env } from './config/env.js';
 import { logger } from './utils/logger.js';
 import { prisma } from './config/database.js';
 
+// Global BigInt JSON serialization polyfill
+(BigInt.prototype as any).toJSON = function () {
+  return this.toString();
+};
+
 async function bootstrap() {
   logger.info('🚀 Starting Dinora Shirinliklari E-Commerce Backend & Telegram Bot...');
 

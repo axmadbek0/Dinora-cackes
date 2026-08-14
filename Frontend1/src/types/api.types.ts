@@ -1,24 +1,32 @@
-export enum OrderStatus {
-  AWAITING_RECEIPT = 'AWAITING_RECEIPT',
-  RECEIPT_SUBMITTED = 'RECEIPT_SUBMITTED',
-  APPROVED = 'APPROVED',
-  PREPARING = 'PREPARING',
-  DELIVERING = 'DELIVERING',
-  COMPLETED = 'COMPLETED',
-  CANCELED = 'CANCELED',
-}
+export const OrderStatus = {
+  AWAITING_RECEIPT: 'AWAITING_RECEIPT',
+  RECEIPT_SUBMITTED: 'RECEIPT_SUBMITTED',
+  PENDING_APPROVAL: 'PENDING_APPROVAL',
+  APPROVED: 'APPROVED',
+  REJECTED: 'REJECTED',
+  PREPARING: 'PREPARING',
+  DELIVERING: 'DELIVERING',
+  COMPLETED: 'COMPLETED',
+  CANCELED: 'CANCELED',
+} as const;
+
+export type OrderStatus = (typeof OrderStatus)[keyof typeof OrderStatus];
 
 export interface ProductDto {
   id: string;
   name: string;
   price: number;
-  description: string;
-  category: string;
-  imageUrl: string;
+  description?: string;
+  category?: string | { id: string; name: string; slug?: string };
+  categoryId?: string;
+  imageUrl?: string;
   weight?: string;
   ingredients?: string;
   shelfLife?: string;
   isAvailable: boolean;
+  portion?: string;
+  weightGrams?: number;
+  calories?: number;
 }
 
 export interface CreateOrderDto {

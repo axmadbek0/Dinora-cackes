@@ -7,6 +7,7 @@ import { ProductsPage } from './modules/products/ProductsPage';
 import { OrdersPage } from './modules/orders/OrdersPage';
 import { CustomCakesPage } from './modules/custom-cakes/CustomCakesPage';
 import { SettingsPage } from './modules/settings/SettingsPage';
+import { UsersPage } from './modules/users/UsersPage';
 import { ToastContainer } from './components/ui/ToastNotification';
 import { useCustomCakes } from './modules/custom-cakes/hooks/useCustomCakes';
 import { useOrders } from './modules/orders/hooks/useOrders';
@@ -46,6 +47,8 @@ export const App: React.FC = () => {
                 return <OrdersPage />;
               case 'custom-cakes':
                 return <CustomCakesPage />;
+              case 'users':
+                return <UsersPage />;
               case 'settings':
                 return <SettingsPage />;
               default:

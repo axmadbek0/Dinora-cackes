@@ -27,38 +27,19 @@ export const useAnalytics = () => {
           };
         }
 
-        // Mock analytics data if backend endpoint is initializing
+        // Clean zero baseline if no data
         return {
-          totalRevenue: 24850000,
-          totalOrders: 142,
-          pendingCustomCakes: 5,
-          activeProducts: 28,
-          monthlyRevenue: [
-            { month: 'Yan', revenue: 14200000, orders: 82 },
-            { month: 'Fev', revenue: 16800000, orders: 95 },
-            { month: 'Mar', revenue: 21000000, orders: 118 },
-            { month: 'Apr', revenue: 19500000, orders: 110 },
-            { month: 'May', revenue: 23400000, orders: 130 },
-            { month: 'Iyun', revenue: 24850000, orders: 142 },
-          ],
-          categoryDistribution: [
-            { category: 'Tortlar', count: 45 },
-            { category: 'Pirojnoelar', count: 32 },
-            { category: 'Pechenelar', count: 18 },
-            { category: 'Ichimliklar', count: 15 },
-          ],
-          orderStatusCounts: [
-            { status: 'PENDING_APPROVAL', count: 8 },
-            { status: 'APPROVED', count: 12 },
-            { status: 'PREPARING', count: 6 },
-            { status: 'DELIVERING', count: 4 },
-            { status: 'COMPLETED', count: 108 },
-            { status: 'CANCELLED', count: 4 },
-          ],
+          totalRevenue: 0,
+          totalOrders: 0,
+          pendingCustomCakes: 0,
+          activeProducts: 0,
+          monthlyRevenue: [],
+          categoryDistribution: [],
+          orderStatusCounts: [],
         };
       }
     },
-    refetchInterval: 30000, // auto refetch every 30s
+    refetchInterval: 15000, // auto refetch every 15s
     enabled: !!localStorage.getItem('dinora_admin_token'),
   });
 };

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useCart } from '../../context/CartContext';
 import { useTelegram } from '../../context/TelegramContext';
 import { formatUZS } from '../../utils/formatters';
-import { createOrder, uploadOrderReceipt, fetchPaymentConfig, apiClient } from '../../services/api';
+import { createOrder, uploadOrderReceipt, fetchPaymentConfig } from '../../services/api';
 import { triggerSuccessHaptic, triggerHaptic } from '../../utils/haptics';
 import type { DeliveryType, PaymentMode, Order } from '../../types';
 import {
@@ -10,7 +10,6 @@ import {
   Plus,
   Minus,
   Trash2,
-  ShoppingBag,
   Send,
   AlertTriangle,
   MapPin,
@@ -21,9 +20,6 @@ import {
   CheckCircle2,
   Upload,
   Clock,
-  PackageCheck,
-  Truck,
-  PartyPopper,
   User,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -197,6 +193,9 @@ export const CartFullScreenModal: React.FC<CartFullScreenModalProps> = ({
       };
 
       const order = await createOrder(orderPayload);
+      if (phone) {
+        localStorage.setItem('dinora_user_phone', phone);
+      }
       setCreatedOrder(order);
       clearCart();
 
@@ -215,7 +214,7 @@ export const CartFullScreenModal: React.FC<CartFullScreenModalProps> = ({
       const fallbackOrder: Order = {
         id: `ord-${Date.now().toString().slice(-4)}`,
         orderNumber: Math.floor(1000 + Math.random() * 9000),
-        status: OrderStatus.AWAITING_RECEIPT,
+        status: 'AWAITING_RECEIPT',
         deliveryType: deliveryType,
         deliveryAddress: addressDetails,
         latitude: null,

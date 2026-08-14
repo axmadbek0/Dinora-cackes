@@ -14,6 +14,8 @@ const MOCK_CATEGORIES: Category[] = [
   { id: 'cat-4', name: 'Korpus Pirojniylar', slug: 'korpus-pirojniylar', isActive: true, createdAt: '', updatedAt: '' },
 ];
 
+import { showToast } from '../../../components/ui/ToastNotification';
+
 export const useProducts = (params?: ProductFilterParams) => {
   return useQuery<Product[]>({
     queryKey: ['products', params],
@@ -24,20 +26,10 @@ export const useProducts = (params?: ProductFilterParams) => {
         });
         return response.data.data || [];
       } catch (err) {
-        let filtered = [...MOCK_PRODUCTS];
-        if (params?.categoryId && params.categoryId !== 'cat-all') {
-          filtered = filtered.filter((p) => p.categoryId === params.categoryId);
-        }
-        if (params?.search) {
-          const q = params.search.toLowerCase();
-          filtered = filtered.filter(
-            (p) => p.name.toLowerCase().includes(q) || p.description?.toLowerCase().includes(q)
-          );
-        }
-        return filtered;
+        return [];
       }
     },
-    staleTime: 1000 * 30,
+    staleTime: 1000 * 10,
   });
 };
 
@@ -69,6 +61,11 @@ export const useCreateProduct = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['products'] });
       queryClient.invalidateQueries({ queryKey: ['analytics-summary'] });
+      showToast('Yangi mahsulot ma\'lumotlar bazasiga muvaffaqiyatli saqlandi! 🎂', 'success', 'Saqlandi');
+    },
+    onError: (err: any) => {
+      const msg = err.response?.data?.message || err.message || 'Mahsulot saqlashda xatolik';
+      showToast(msg, 'error', 'Xatolik');
     },
   });
 };
@@ -86,6 +83,12 @@ export const useUpdateProduct = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['products'] });
+      queryClient.invalidateQueries({ queryKey: ['analytics-summary'] });
+      showToast('Mahsulot tahrirlandi va bazada yangilandi!', 'success', 'Yangilandi');
+    },
+    onError: (err: any) => {
+      const msg = err.response?.data?.message || err.message || 'Tahrirlashda xatolik';
+      showToast(msg, 'error', 'Xatolik');
     },
   });
 };
@@ -126,6 +129,7 @@ export const useUpdateStock = () => {
       if (context?.previousProducts) {
         queryClient.setQueryData(['products'], context.previousProducts);
       }
+      showToast('Zaxira holatini o\'zgartirishda xatolik', 'error', 'Xatolik');
     },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ['products'] });
@@ -145,6 +149,11 @@ export const useDeleteProduct = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['products'] });
       queryClient.invalidateQueries({ queryKey: ['analytics-summary'] });
+      showToast('Mahsulot ma\'lumotlar bazasidan o\'chirildi!', 'success', 'O\'chirildi');
+    },
+    onError: (err: any) => {
+      const msg = err.response?.data?.message || err.message || 'O\'chirishda xatolik';
+      showToast(msg, 'error', 'Xatolik');
     },
   });
 };

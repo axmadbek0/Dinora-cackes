@@ -33,11 +33,15 @@ export const Header: React.FC<HeaderProps> = ({
     },
     'custom-cakes': {
       title: 'Maxsus Tort Buyurtmalar',
-      subtitle: 'Mijozlar yuklagan rasmlar va maxsus shirinlik so\'rovlari',
+      subtitle: 'Individual dizaynli tortlar bo\'yicha tushgan so\'rovlar va narx belgilash',
+    },
+    users: {
+      title: 'Foydalanuvchilar Boshqaruvi',
+      subtitle: 'Mijozlar ro\'yxati, buyurtma statistikasi va ruxsatlar',
     },
     settings: {
-      title: 'Do\'kon va Tizim Sozlamalari',
-      subtitle: 'Yetkazib berish, ish vaqtlari, minimal summa va do\'kon ish rejimi',
+      title: 'Do\'kon Sozlamalari',
+      subtitle: 'Ish vaqtlari, aloqa va to\'lov ma\'lumotlari',
     },
   };
 

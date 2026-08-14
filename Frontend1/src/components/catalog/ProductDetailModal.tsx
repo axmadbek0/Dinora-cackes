@@ -19,8 +19,6 @@ import {
   ShoppingBag,
   Star,
   ArrowLeft,
-  ChevronDown,
-  ChevronUp,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 

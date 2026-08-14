@@ -1,5 +1,6 @@
-export * from './api.types';
-import { OrderStatus, ProductDto, CreateOrderDto } from './api.types';
+export type { OrderStatus, ProductDto, CreateOrderDto, SystemSettingDto, ApiResponse } from './api.types';
+export { OrderStatus as OrderStatusObj } from './api.types';
+import type { OrderStatus, ProductDto, CreateOrderDto } from './api.types';
 
 export type FilterCategory = 'Barchasi' | 'Tortlar' | 'Pirojniylar' | 'Art Desertlar' | 'Korpus Pirojniylar';
 

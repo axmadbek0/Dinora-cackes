@@ -38,6 +38,8 @@ export const OrderRow: React.FC<OrderRowProps> = ({
     return <OrderStatusBadge status={order.status} />;
   }
 
+  const isPickup = (order.deliveryType as any) === 'PICKUP';
+
   const actionButtons = (
     <div className="flex items-center gap-2">
       {(order.status === OrderStatus.PENDING_APPROVAL ||
@@ -63,14 +65,25 @@ export const OrderRow: React.FC<OrderRowProps> = ({
         </>
       )}
 
-      {order.status === OrderStatus.APPROVED && (
+      {order.status === OrderStatus.APPROVED && isPickup && (
+        <Button
+          variant="gold"
+          size="sm"
+          isLoading={isPendingStatus}
+          onClick={() => onUpdateStatus(order.id, OrderStatus.COMPLETED)}
+        >
+          🎉 Bajarildi (Olib ketishga tayyor)
+        </Button>
+      )}
+
+      {order.status === OrderStatus.APPROVED && !isPickup && (
         <Button
           variant="secondary"
           size="sm"
           isLoading={isPendingStatus}
           onClick={() => onUpdateStatus(order.id, OrderStatus.DELIVERING)}
         >
-          🚚 Yetkazishga berish
+          🚚 Yo'lga chiqarish
         </Button>
       )}
 

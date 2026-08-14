@@ -6,13 +6,18 @@ import {
   Sparkles,
   Settings,
   LogOut,
+  ChevronLeft,
+  ChevronRight,
+  ShieldCheck,
   CakeSlice,
+  Menu,
   X,
+  Users,
 } from 'lucide-react';
 import { clsx } from 'clsx';
 import { useAuth } from '../../context/AuthContext';
 
-export type ActiveTab = 'analytics' | 'products' | 'orders' | 'custom-cakes' | 'settings';
+export type ActiveTab = 'analytics' | 'products' | 'orders' | 'custom-cakes' | 'users' | 'settings';
 
 interface SidebarProps {
   activeTab: ActiveTab;
@@ -68,6 +73,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
       icon: Sparkles,
       badge: pendingCakesCount > 0 ? pendingCakesCount : undefined,
       badgeColor: 'bg-dinora-pink',
+    },
+    {
+      id: 'users' as ActiveTab,
+      label: 'Foydalanuvchilar',
+      shortLabel: 'Mijozlar',
+      subtitle: 'Xaridorlar va ruxsatlar',
+      icon: Users,
     },
     {
       id: 'settings' as ActiveTab,
@@ -209,10 +221,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
   return (
     <>
-      {/* 1. Desktop Responsive Collapsible Left Sidebar */}
+      {/* 1. Desktop Responsive Fixed Left Sidebar */}
       <aside
         className={clsx(
-          'hidden lg:flex bg-white border-r border-dinora-border flex-col h-screen sticky top-0 shadow-dinora z-20 shrink-0 transition-all duration-300 ease-in-out',
+          'hidden lg:flex bg-white border-r border-dinora-border flex-col h-screen fixed top-0 bottom-0 left-0 shadow-dinora z-30 shrink-0 transition-all duration-300 ease-in-out',
           isCompact ? 'w-20' : 'w-64'
         )}
       >

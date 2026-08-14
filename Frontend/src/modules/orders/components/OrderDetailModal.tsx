@@ -90,19 +90,41 @@ export const OrderDetailModal: React.FC<OrderDetailModalProps> = ({
               <CreditCard className="w-3.5 h-3.5 text-dinora-gold" />
               <span>To'lov usuli va chek</span>
             </span>
-            <div className="flex items-center justify-between">
-              <p className="text-xs font-semibold text-dinora-chocolate">
-                {order.paymentMode === 'CARD_TRANSFER' ? 'Karta orqali' : 'Naqd pul'}
-              </p>
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <p className="text-xs font-semibold text-dinora-chocolate">
+                  {order.paymentMode === 'CARD_TRANSFER' ? 'Karta o\'tkazmasi (To\'lov cheki yuklangan)' : 'Naqd pul'}
+                </p>
+
+                {order.paymentReceiptUrl && (
+                  <button
+                    onClick={() => onOpenReceipt(order.paymentReceiptUrl!)}
+                    className="text-xs font-bold text-dinora-gold hover:text-dinora-chocolate flex items-center gap-1 underline"
+                  >
+                    <Eye className="w-3.5 h-3.5" />
+                    <span>Kattalashtirish</span>
+                  </button>
+                )}
+              </div>
 
               {order.paymentReceiptUrl && (
-                <button
+                <div
                   onClick={() => onOpenReceipt(order.paymentReceiptUrl!)}
-                  className="text-xs font-bold text-dinora-gold hover:text-dinora-chocolate flex items-center gap-1 underline"
+                  className="relative group cursor-pointer rounded-xl overflow-hidden border-2 border-dinora-gold/40 hover:border-dinora-gold transition-all max-h-48 bg-gray-50 flex items-center justify-center"
                 >
-                  <Eye className="w-3.5 h-3.5" />
-                  <span>Chekni ko'rish</span>
-                </button>
+                  <img
+                    src={order.paymentReceiptUrl.startsWith('http') ? order.paymentReceiptUrl : `http://localhost:5000${order.paymentReceiptUrl}`}
+                    alt="To'lov cheki"
+                    className="w-full object-cover max-h-48 rounded-lg group-hover:scale-105 transition-transform"
+                    onError={(e) => {
+                      (e.target as HTMLElement).style.display = 'none';
+                    }}
+                  />
+                  <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white font-bold text-xs gap-1.5">
+                    <Eye className="w-4 h-4" />
+                    <span>Chekni to'liq ko'rish</span>
+                  </div>
+                </div>
               )}
             </div>
           </div>
@@ -184,14 +206,25 @@ export const OrderDetailModal: React.FC<OrderDetailModalProps> = ({
             </>
           )}
 
-          {order.status === OrderStatus.APPROVED && (
+          {order.status === OrderStatus.APPROVED && (order.deliveryType as any) === 'PICKUP' && (
+            <Button
+              variant="gold"
+              size="sm"
+              isLoading={isPending}
+              onClick={() => onUpdateStatus(order.id, OrderStatus.COMPLETED)}
+            >
+              🎉 Bajarildi (Olib ketishga tayyor)
+            </Button>
+          )}
+
+          {order.status === OrderStatus.APPROVED && (order.deliveryType as any) !== 'PICKUP' && (
             <Button
               variant="primary"
               size="sm"
               isLoading={isPending}
               onClick={() => onUpdateStatus(order.id, OrderStatus.DELIVERING)}
             >
-              🚚 Yetkazishga berish
+              🚚 Yo'lga chiqarish
             </Button>
           )}
 

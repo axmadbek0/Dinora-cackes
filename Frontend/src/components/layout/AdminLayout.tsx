@@ -10,7 +10,9 @@ interface AdminLayoutProps {
   isRefreshing?: boolean;
 }
 
-const VALID_TABS: ActiveTab[] = ['analytics', 'products', 'orders', 'custom-cakes', 'settings'];
+import { clsx } from 'clsx';
+
+const VALID_TABS: ActiveTab[] = ['analytics', 'products', 'orders', 'custom-cakes', 'users', 'settings'];
 
 const getInitialTab = (): ActiveTab => {
   if (typeof window !== 'undefined') {
@@ -43,7 +45,6 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
   };
 
   const toggleSidebar = () => {
-    // On mobile (< 1024px), toggle mobile drawer; on desktop toggle sidebar collapse
     if (typeof window !== 'undefined' && window.innerWidth < 1024) {
       setIsMobileOpen((prev) => !prev);
     } else {
@@ -52,8 +53,8 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
   };
 
   return (
-    <div className="flex min-h-screen max-w-full overflow-x-hidden bg-dinora-bg font-sans selection:bg-dinora-gold selection:text-dinora-chocolate relative">
-      {/* Collapsible & Responsive Sidebar */}
+    <div className="min-h-screen bg-dinora-bg font-sans selection:bg-dinora-gold selection:text-dinora-chocolate relative">
+      {/* Permanent Fixed Desktop & Responsive Mobile Sidebar */}
       <Sidebar
         activeTab={activeTab}
         setActiveTab={handleTabChange}
@@ -65,8 +66,13 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
         onMobileClose={() => setIsMobileOpen(false)}
       />
 
-      {/* Main Content Area - Strictly prevents horizontal scrolling */}
-      <div className="flex-1 flex flex-col min-w-0 max-w-full overflow-x-hidden transition-all duration-300">
+      {/* Main Content View with Dynamic Left Margin Offset */}
+      <div
+        className={clsx(
+          'flex flex-col min-h-screen min-w-0 transition-all duration-300 ease-in-out',
+          isSidebarOpen ? 'lg:ml-64' : 'lg:ml-20'
+        )}
+      >
         <Header
           activeTab={activeTab}
           onRefresh={onRefreshAll}
@@ -74,8 +80,8 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
           onToggleMobileMenu={toggleSidebar}
         />
 
-        <main className="flex-1 p-3 sm:p-6 lg:p-8 pb-24 lg:pb-8 overflow-y-auto max-w-full overflow-x-hidden">
-          <div className="max-w-7xl mx-auto space-y-6 sm:space-y-8 w-full overflow-x-hidden">
+        <main className="flex-1 p-4 sm:p-6 lg:p-8 pb-24 lg:pb-8 w-full max-w-full">
+          <div className="max-w-7xl mx-auto space-y-6 sm:space-y-8 w-full">
             {children(activeTab)}
           </div>
         </main>

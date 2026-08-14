@@ -30,8 +30,8 @@ export const OrdersPage: React.FC = () => {
     { id: 'ALL', label: 'Barchasi' },
     { id: OrderStatus.PENDING_APPROVAL, label: '⏳ Kutilayotgan' },
     { id: OrderStatus.APPROVED, label: '✅ Tasdiqlangan' },
-    { id: OrderStatus.DELIVERING, label: '🚚 Yo\'lda' },
     { id: OrderStatus.COMPLETED, label: '🎉 Bajarilgan' },
+    { id: OrderStatus.DELIVERING, label: '🚚 Yo\'lda' },
     { id: OrderStatus.CANCELLED, label: '❌ Bekor qilingan' },
   ];
 

@@ -16,15 +16,30 @@ import {
   MOCK_CUSTOM_CAKES,
 } from './mockData';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api/v1';
+import { API_BASE_URL } from '../config/env.config';
 
 export const apiClient = axios.create({
   baseURL: API_BASE_URL,
   headers: {
     'Content-Type': 'application/json',
   },
-  timeout: 10000, // Increased to 10s for slower DB responses
+  timeout: 15000,
 });
+
+apiClient.interceptors.request.use(
+  (config) => {
+    const initData = (window as any).Telegram?.WebApp?.initData;
+    if (initData) {
+      config.headers['X-Telegram-Init-Data'] = initData;
+    }
+    const token = localStorage.getItem('dinora_admin_token');
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
 
 // In-memory state for mock fallback persistence during session
 let mockProducts = [...INITIAL_PRODUCTS];

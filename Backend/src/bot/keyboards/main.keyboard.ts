@@ -7,9 +7,10 @@ export function getMainKeyboard(lang: SupportedLanguage = 'uz') {
       .text('🍰 Смотреть каталог')
       .text('🛒 Корзина')
       .row()
+      .text('🚚 Отследить заказ')
       .text('✨ Свой дизайн торта')
-      .text('📞 Контакты и адрес')
       .row()
+      .text('📞 Контакты и адрес')
       .text('🌐 Сменить язык')
       .resized();
   }
@@ -19,9 +20,10 @@ export function getMainKeyboard(lang: SupportedLanguage = 'uz') {
       .text('🍰 Каталогни кўриш')
       .text('🛒 Саватча')
       .row()
+      .text('🚚 Буюртмани кузатиш')
       .text('✨ Ўзим хоҳлаганимдек')
-      .text('📞 Алоқа & Маълумот')
       .row()
+      .text('📞 Алоқа & Маълумот')
       .text('🌐 Тилни ўзгартириш')
       .resized();
   }
@@ -31,9 +33,10 @@ export function getMainKeyboard(lang: SupportedLanguage = 'uz') {
     .text('🍰 Katalogni ko\'rish')
     .text('🛒 Savatcha')
     .row()
+    .text('🚚 Buyurtmani kuzatish')
     .text('✨ O\'zim xohlaganimdek')
-    .text('📞 Aloqa & Ma\'lumot')
     .row()
+    .text('📞 Aloqa & Ma\'lumot')
     .text('🌐 Tilni o\'zgartirish')
     .resized();
 }

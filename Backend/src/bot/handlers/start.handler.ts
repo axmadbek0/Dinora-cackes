@@ -198,3 +198,121 @@ startHandler.hears(['📞 Aloqa & Ma\'lumot', '📞 Алоқа & Маълумо�
     });
   }
 });
+
+// 4. Order Tracking Handler & Commands (/track, /orders, /buyurtmalar)
+startHandler.hears(['🚚 Buyurtmani kuzatish', '🚚 Буюртмани кузатиш', '🚚 Отследить заказ'], async (ctx) => {
+  return handleOrderTracking(ctx);
+});
+
+startHandler.command(['track', 'orders', 'buyurtmalar'], async (ctx) => {
+  return handleOrderTracking(ctx);
+});
+
+async function handleOrderTracking(ctx: BotContext) {
+  const telegramId = ctx.from?.id;
+  if (!telegramId) return;
+
+  const currentLang = await resolveUserLanguage(telegramId, ctx.from?.language_code);
+
+  try {
+    const { OrderService } = await import('../../modules/orders/order.service.js');
+    const orderService = new OrderService();
+    const orders: any = await orderService.getOrders({ telegramId });
+
+    if (!orders || orders.length === 0) {
+      const noOrdersMsg =
+        currentLang === 'ru'
+          ? '📦 <b>У вас пока нет активных заказов.</b>\n\nВы можете выбрать и заказать вкусные десерты в нашем каталоге! 🎂'
+          : currentLang === 'uz-Cyrl'
+          ? '📦 <b>Сизда ҳозирча фаол буюртмалар мавжуд эмас.</b>\n\nКаталогдан мазали ширинликларни танлаб, буюртма беришингиз мумкин! 🎂'
+          : '📦 <b>Sizda hozircha faol buyurtmalar mavjud emas.</b>\n\nKatalogni ko\'rib, mazali shirinliklarga buyurtma berishingiz mumkin! 🎂';
+
+      const kb = new InlineKeyboard().text(
+        currentLang === 'ru' ? '🍰 Открыть каталог' : '🍰 Katalogni ko\'rish',
+        'catalog_page_1'
+      );
+
+      return ctx.reply(noOrdersMsg, {
+        parse_mode: 'HTML',
+        reply_markup: kb,
+      });
+    }
+
+    // Show recent up to 5 orders
+    const recentOrders = orders.slice(0, 5);
+
+    const getStatusEmojiAndText = (status: string) => {
+      switch (status) {
+        case 'AWAITING_RECEIPT':
+        case 'PENDING_APPROVAL':
+          return '⏳ Admin tasdiqlashi kutilmoqda';
+        case 'APPROVED':
+          return '✅ Tasdiqlandi (Tayyorlashga o\'tdi)';
+        case 'PREPARING':
+          return '👨‍🍳 Shirinlik tayyorlanmoqda';
+        case 'DELIVERING':
+          return '🚖 Yo\'lda (Kuryerda)';
+        case 'COMPLETED':
+          return '🎉 Yetkazib berilgan';
+        case 'REJECTED':
+        case 'CANCELED':
+          return '❌ Bekor qilingan';
+        default:
+          return status;
+      }
+    };
+
+    let msg = `🚚 <b>SIZNING SO'NGGI BUYURTMALARINGIZ:</b>\n\n`;
+
+    for (const order of recentOrders) {
+      const statusText = getStatusEmojiAndText(order.status);
+      const isDelivery = order.deliveryType !== 'PICKUP';
+      const typeText = isDelivery ? '🚖 Yetkazib berish' : '🏪 Do\'kondan olib ketish';
+      const dateStr = new Date(order.createdAt).toLocaleDateString('uz-UZ', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+      });
+
+      let itemsSummary = '';
+      if (order.items && order.items.length > 0) {
+        itemsSummary = order.items
+          .map((i: any) => `  • ${escapeHtml(i.productName || 'Mahsulot')} × ${i.quantity} ta`)
+          .join('\n');
+      }
+
+      msg += `━━━━━━━━━━━━━━━━━━━━━\n`;
+      msg += `🆔 Buyurtma: <b>#${order.orderNumber}</b>\n`;
+      msg += `📅 Sana: <i>${dateStr}</i>\n`;
+      msg += `📍 Holati: <b>${statusText}</b>\n`;
+      msg += `📦 Usuli: <b>${typeText}</b>\n`;
+      if (itemsSummary) {
+        msg += `🍰 Tarkibi:\n${itemsSummary}\n`;
+      }
+      msg += `💰 Summa: <b>${Number(order.totalAmount).toLocaleString('uz-UZ')} UZS</b>\n`;
+    }
+
+    msg += `━━━━━━━━━━━━━━━━━━━━━\n`;
+    msg += `<i>Admin panelda buyurtmangiz holati o'zgarganda bot orqali sizga darhol xabar yuboriladi! 🔔</i>`;
+
+    const kb = new InlineKeyboard()
+      .text('🔄 Yangilash', 'refresh_orders_status')
+      .row()
+      .text('🍰 Katalogni ko\'rish', 'catalog_page_1');
+
+    return ctx.reply(msg, {
+      parse_mode: 'HTML',
+      reply_markup: kb,
+    });
+  } catch (err: any) {
+    return ctx.reply(`Buyurtmalarni yuklashda xatolik: ${err?.message || 'Qayta urinib ko\'ring'}`);
+  }
+}
+
+startHandler.callbackQuery('refresh_orders_status', async (ctx) => {
+  await ctx.answerCallbackQuery({ text: 'Holatlar yangilandi!' }).catch(() => {});
+  return handleOrderTracking(ctx);
+});
+

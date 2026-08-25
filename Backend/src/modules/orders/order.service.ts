@@ -160,7 +160,9 @@ export class OrderService {
         if (mappedStatus === 'APPROVED') {
           statusText = `✅ <b>Buyurtmangiz ADMIN tomonidan TASDIQLANDI!</b>\n🎂 Shirinligingiz tayyorlashga topshirildi. Tez orada tayyor bo'ladi!`;
         } else if (mappedStatus === 'REJECTED') {
-          statusText = `❌ <b>Afsuski, buyurtmangiz admin tomonidan rad etildi.</b>`;
+          statusText = `❌ <b>Afsuski, buyurtmangiz rad etildi.</b>\nBatafsil ma'lumot olish uchun admin bilan bog'lanishingiz mumkin.`;
+        } else if (mappedStatus === 'CANCELED') {
+          statusText = `❌ <b>Buyurtmangiz bekor qilindi.</b>`;
         } else if (mappedStatus === 'PREPARING') {
           statusText = `👨‍🍳 <b>Shirinligingiz tayyorlanmoqda!</b>\nKonditerimiz mehr bilan bezatmoqda.`;
         } else if (mappedStatus === 'DELIVERING') {
@@ -182,7 +184,10 @@ export class OrderService {
         }
 
         if (statusText) {
-          const msg = `🆔 Buyurtma №: <b>#${updatedOrder.orderNumber}</b>\n\n${statusText}`;
+          const itemsSummary = updatedOrder.items && updatedOrder.items.length > 0
+            ? '\n🍰 ' + updatedOrder.items.map((i: any) => `${i.productName || 'Mahsulot'} (${i.quantity} ta)`).join(', ')
+            : '';
+          const msg = `🆔 Buyurtma №: <b>#${updatedOrder.orderNumber}</b>${itemsSummary}\n💰 Summa: <b>${Number(updatedOrder.totalAmount).toLocaleString('uz-UZ')} UZS</b>\n\n${statusText}`;
           await bot.api.sendMessage(tgId, msg, {
             parse_mode: 'HTML',
             reply_markup: replyMarkup,

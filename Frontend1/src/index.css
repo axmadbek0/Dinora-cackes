@@ -1,28 +1,70 @@
-@import "tailwindcss";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
 @layer base {
   html {
     scroll-behavior: smooth;
     -webkit-tap-highlight-color: transparent;
+    overscroll-behavior-y: none;
+    touch-action: manipulation;
   }
-  
-  body {
+
+  body, html {
+    overflow-x: hidden;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  html, body, #root {
+    overflow-x: hidden !important;
+    max-width: 100vw;
+    min-height: 100vh;
+    min-height: 100dvh;
+    margin: 0;
+    padding: 0;
     background-color: #FAF6F0;
     color: #2B1810;
-    font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
-    overflow-x: hidden;
+    font-family: 'Inter', 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  }
+
+  h1, h2, h3, .font-serif {
+    font-family: 'Playfair Display', Georgia, serif;
   }
 }
 
-/* Custom DINORA Theme Variables & Utilities */
-:root {
-  --color-dinora-bg: #FAF6F0;
-  --color-dinora-mocha: #2B1810;
-  --color-dinora-berry: #D65B78;
-  --color-dinora-berry-light: #F8E7EA;
-  --color-dinora-gold: #CBB279;
-  --color-dinora-gold-bright: #D4AF37;
-  --color-dinora-taupe: #6B5B52;
+@layer utilities {
+  /* Safe area padding for iPhones and Telegram Mini App headers */
+  .safe-area-bottom {
+    padding-bottom: env(safe-area-inset-bottom, 16px);
+  }
+  .safe-area-top {
+    padding-top: env(safe-area-inset-top, 16px);
+  }
+
+  /* Hide scrollbars for clean horizontal slider pills */
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  /* Dynamic 100dvh Fullscreen helper */
+  .h-dvh {
+    height: 100dvh;
+  }
+  .min-h-dvh {
+    min-height: 100dvh;
+  }
+  .max-h-dvh {
+    max-height: 100dvh;
+  }
+
+  .overflow-x-clip {
+    overflow-x: clip;
+  }
 }
 
 /* Custom Scrollbar */
@@ -30,18 +72,28 @@
   width: 6px;
   height: 6px;
 }
+
 ::-webkit-scrollbar-track {
   background: #FAF6F0;
 }
+
 ::-webkit-scrollbar-thumb {
   background: #CBB279;
-  border-radius: 9999px;
-}
-::-webkit-scrollbar-thumb:hover {
-  background: #D65B78;
+  border-radius: 4px;
 }
 
-/* Glassmorphism & Surface Utilities */
+::-webkit-scrollbar-thumb:hover {
+  background: #BA9F62;
+}
+
+/* Glassmorphism utility */
+.glass-panel {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(229, 231, 235, 0.8);
+}
+
 .glass-card {
   background: rgba(255, 255, 255, 0.85);
   backdrop-filter: blur(12px);
@@ -72,7 +124,6 @@
   box-shadow: 0 10px 30px -5px rgba(203, 178, 121, 0.3);
 }
 
-/* Telegram Native Feel */
 .twa-active-press:active {
   transform: scale(0.97);
   transition: transform 0.1s ease;

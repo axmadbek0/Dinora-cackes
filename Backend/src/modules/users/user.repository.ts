@@ -1,5 +1,6 @@
 import { prisma } from '../../config/database.js';
 import { UserRole } from '@prisma/client';
+import { UserFileStore } from '../../utils/user-file-store.js';
 
 export class UserRepository {
   /**
@@ -7,10 +8,9 @@ export class UserRepository {
    */
   async findAll(filter?: { search?: string; role?: UserRole }) {
     try {
-      const where: any = {};
-      if (filter?.role) {
-        where.role = filter.role;
-      }
+      const where: any = {
+        role: UserRole.USER,
+      };
       if (filter?.search) {
         const q = filter.search.toLowerCase();
         where.OR = [
@@ -42,7 +42,55 @@ export class UserRepository {
         orderBy: { createdAt: 'desc' },
       });
 
-      return users.map((user) => {
+      if (users && users.length > 0) {
+        return users.map((user) => {
+          const totalSpent = user.orders.reduce((sum, order) => {
+            if (order.status !== 'CANCELED' && order.status !== 'REJECTED') {
+              return sum + Number(order.totalAmount);
+            }
+            return sum;
+          }, 0);
+
+          return {
+            id: user.id,
+            telegramId: user.telegramId ? user.telegramId.toString() : null,
+            firstName: user.firstName || 'Foydalanuvchi',
+            lastName: user.lastName || '',
+            username: user.username || null,
+            phone: user.phone || 'Biriktirilmagan',
+            role: user.role,
+            ordersCount: user._count.orders,
+            customCakesCount: user._count.customCakeRequests,
+            totalSpent,
+            createdAt: user.createdAt,
+            updatedAt: user.updatedAt,
+          };
+        });
+      }
+
+      // Fallback to unified UserFileStore
+      return UserFileStore.findUsers(filter);
+    } catch (err) {
+      return UserFileStore.findUsers(filter);
+    }
+  }
+
+  async findById(id: string) {
+    try {
+      const user = await prisma.user.findUnique({
+        where: { id },
+        include: {
+          orders: {
+            orderBy: { createdAt: 'desc' },
+            include: { items: true },
+          },
+          customCakeRequests: {
+            orderBy: { createdAt: 'desc' },
+          },
+        },
+      });
+
+      if (user) {
         const totalSpent = user.orders.reduce((sum, order) => {
           if (order.status !== 'CANCELED' && order.status !== 'REJECTED') {
             return sum + Number(order.totalAmount);
@@ -58,69 +106,44 @@ export class UserRepository {
           username: user.username || null,
           phone: user.phone || 'Biriktirilmagan',
           role: user.role,
-          ordersCount: user._count.orders,
-          customCakesCount: user._count.customCakeRequests,
+          ordersCount: user.orders.length,
+          customCakesCount: user.customCakeRequests.length,
           totalSpent,
+          orders: user.orders,
+          customCakeRequests: user.customCakeRequests,
           createdAt: user.createdAt,
           updatedAt: user.updatedAt,
         };
-      });
-    } catch (err) {
-      return [];
+      }
+
+      return UserFileStore.findById(id);
+    } catch {
+      return UserFileStore.findById(id);
     }
   }
 
-  async findById(id: string) {
-    const user = await prisma.user.findUnique({
-      where: { id },
-      include: {
-        orders: {
-          orderBy: { createdAt: 'desc' },
-          include: { items: true },
-        },
-        customCakeRequests: {
-          orderBy: { createdAt: 'desc' },
-        },
-      },
-    });
-
-    if (!user) return null;
-
-    const totalSpent = user.orders.reduce((sum, order) => {
-      if (order.status !== 'CANCELED' && order.status !== 'REJECTED') {
-        return sum + Number(order.totalAmount);
-      }
-      return sum;
-    }, 0);
-
-    return {
-      id: user.id,
-      telegramId: user.telegramId ? user.telegramId.toString() : null,
-      firstName: user.firstName || 'Foydalanuvchi',
-      lastName: user.lastName || '',
-      username: user.username || null,
-      phone: user.phone || 'Biriktirilmagan',
-      role: user.role,
-      ordersCount: user.orders.length,
-      customCakesCount: user.customCakeRequests.length,
-      totalSpent,
-      orders: user.orders,
-      customCakeRequests: user.customCakeRequests,
-      createdAt: user.createdAt,
-      updatedAt: user.updatedAt,
-    };
-  }
-
   async updateRole(id: string, role: UserRole) {
-    return await prisma.user.update({
-      where: { id },
-      data: { role },
-    });
+    try {
+      const updated = await prisma.user.update({
+        where: { id },
+        data: { role },
+      });
+      UserFileStore.updateRole(id, role as any);
+      return updated;
+    } catch {
+      return UserFileStore.updateRole(id, role as any);
+    }
   }
 
   async deleteUser(id: string) {
-    return await prisma.user.delete({
-      where: { id },
-    });
+    try {
+      await prisma.user.delete({
+        where: { id },
+      });
+      UserFileStore.deleteUser(id);
+      return true;
+    } catch {
+      return UserFileStore.deleteUser(id);
+    }
   }
 }

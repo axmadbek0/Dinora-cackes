@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Award, ShieldCheck, Sparkles, ZoomIn } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 export const MasterCertificateCard: React.FC = () => {
+  const { t } = useTranslation();
   const [rotateX, setRotateX] = useState(0);
   const [rotateY, setRotateY] = useState(0);
   const [isZoomed, setIsZoomed] = useState(false);
@@ -32,13 +34,13 @@ export const MasterCertificateCard: React.FC = () => {
       <div className="text-center max-w-2xl mx-auto mb-10 space-y-2">
         <div className="inline-flex items-center space-x-2 bg-[#F8E7EA] text-[#D65B78] px-3 py-1 rounded-full text-xs font-bold uppercase tracking-widest border border-[#D65B78]/20">
           <Award className="w-4 h-4" />
-          <span>Professional Mahorat</span>
+          <span>{t('certificate.pill')}</span>
         </div>
         <h2 className="text-3xl sm:text-4xl font-serif font-bold text-[#2B1810]">
-          Bosh Konditer Diplom va Sertifikati
+          {t('certificate.title')}
         </h2>
         <p className="text-sm text-[#6B5B52]">
-          Har bir pishiriq ortida ko'p yillik bilim, tajriba va xalqaro standartdagi konditerlik mahorati yotadi.
+          {t('certificate.subtitle')}
         </p>
       </div>
 
@@ -66,13 +68,12 @@ export const MasterCertificateCard: React.FC = () => {
                 alt="Axmedova Dinora Master Certificate"
                 className="w-full h-auto object-cover"
                 onError={(e) => {
-                  // Fallback preview if diplom image path issue
                   (e.target as HTMLElement).style.display = 'none';
                 }}
               />
               <div className="absolute inset-0 bg-[#2B1810]/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white space-x-1.5 font-bold text-xs">
                 <ZoomIn className="w-4 h-4" />
-                <span>Kattalashtirib ko'rish</span>
+                <span>{t('certificate.zoom_hint')}</span>
               </div>
             </div>
 
@@ -81,28 +82,28 @@ export const MasterCertificateCard: React.FC = () => {
               <div className="flex items-center space-x-2 text-[#D4AF37]">
                 <ShieldCheck className="w-6 h-6" />
                 <span className="text-xs uppercase font-extrabold tracking-widest text-[#2B1810]">
-                  Rasmiy Malaka Sertifikati
+                  {t('certificate.badge')}
                 </span>
               </div>
 
               <blockquote className="font-serif italic text-base sm:text-lg text-[#2B1810] border-l-4 border-[#D65B78] pl-4 py-1 leading-relaxed">
-                "Axmedova Dinora — Tort_uz tomonidan tashkil etilgan 5 kunlik «UNIVERSAL KONDITER» kursi bitiruvchisi"
+                {t('certificate.quote')}
               </blockquote>
 
               <div className="space-y-2 text-xs text-[#6B5B52] pt-2 border-t border-[#2B1810]/5">
                 <p className="flex items-center space-x-2">
                   <Sparkles className="w-4 h-4 text-[#CBB279] shrink-0" />
-                  <span>Xalqaro retsepturaga asoslangan zamonaviy art-desert texnikalari</span>
+                  <span>{t('certificate.feature1')}</span>
                 </p>
                 <p className="flex items-center space-x-2">
                   <Sparkles className="w-4 h-4 text-[#CBB279] shrink-0" />
-                  <span>Faqat 100% halal va tabiiy masalliqlar bilan ishlash standartlari</span>
+                  <span>{t('certificate.feature2')}</span>
                 </p>
               </div>
 
               <div className="pt-2 flex items-center justify-between">
                 <span className="text-[11px] font-bold text-[#CBB279] uppercase">
-                  🏆 Sertifikatlangan Konditer
+                  {t('certificate.certified_confectioner')}
                 </span>
                 <span className="text-xs font-serif font-bold text-[#2B1810]">
                   DINORA Bakery
@@ -127,7 +128,7 @@ export const MasterCertificateCard: React.FC = () => {
               className="w-full h-auto max-h-[90vh] object-contain rounded-2xl border-2 border-[#D4AF37] shadow-2xl"
             />
             <p className="text-center text-white text-xs mt-3 font-serif">
-              Axmedova Dinora — «UNIVERSAL KONDITER» Malaka Diplom (Kattalashtirilgan tasvir)
+              {t('certificate.lightbox_caption')}
             </p>
           </div>
         </div>
@@ -136,3 +137,5 @@ export const MasterCertificateCard: React.FC = () => {
     </section>
   );
 };
+
+export default MasterCertificateCard;

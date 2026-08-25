@@ -1,9 +1,7 @@
 import { prisma } from '../../config/database.js';
 import { CreateOrderDTO, UpdateOrderStatusDTO } from './order.schema.js';
 import { OrderStatus, PaymentStatus } from '@prisma/client';
-
-// Clean fallback in-memory cache initialized to zero records
-const MOCK_ORDERS: any[] = [];
+import { OrderFileStore } from '../../utils/order-file-store.js';
 
 export class OrderRepository {
   async upsertUser(telegramId: number, phone?: string, firstName?: string, lastName?: string, username?: string) {
@@ -26,8 +24,8 @@ export class OrderRepository {
       });
     } catch (err) {
       return {
-        id: `usr-${telegramId}`,
-        telegramId: BigInt(telegramId),
+        id: `usr-${telegramId || Date.now()}`,
+        telegramId: BigInt(telegramId || 0),
         phone: phone || '+998900000000',
         firstName: firstName || 'Mijoz',
         lastName: lastName || '',
@@ -51,7 +49,15 @@ export class OrderRepository {
 
   async createOrder(
     userId: string,
-    data: CreateOrderDTO & { deliveryAddress?: string; deliveryType?: string; phone?: string; paymentReceiptUrl?: string },
+    data: CreateOrderDTO & {
+      deliveryAddress?: string;
+      deliveryType?: string;
+      phone?: string;
+      customerName?: string;
+      paymentReceiptUrl?: string;
+      latitude?: number | null;
+      longitude?: number | null;
+    },
     itemsWithPrices: Array<{ productId: string; productName: string; price: number; quantity: number }>,
     totalAmount: number
   ) {
@@ -60,18 +66,23 @@ export class OrderRepository {
       ? PaymentStatus.PENDING_VERIFICATION
       : (data.paymentMode === 'CASH' ? PaymentStatus.UNPAID : PaymentStatus.PENDING);
 
+    const lat = typeof data.latitude === 'number' ? data.latitude : (data.latitude ? parseFloat(data.latitude) : null);
+    const lng = typeof data.longitude === 'number' ? data.longitude : (data.longitude ? parseFloat(data.longitude) : null);
+
     try {
       return await prisma.$transaction(async (tx) => {
         const order = await tx.order.create({
           data: {
             userId,
-            deliveryType: data.deliveryType as any,
+            deliveryType: (data.deliveryType as any) || 'DELIVERY',
             deliveryRegion: 'Sirdaryo tumani',
             mahalla: data.mahalla,
             street: data.street,
             houseNumber: data.houseNumber,
             phone: data.phone || data.customerPhone,
             deliveryAddress: data.deliveryAddress,
+            latitude: lat,
+            longitude: lng,
             paymentMode: (data.paymentMode as any) || 'CARD_TRANSFER',
             paymentReceiptUrl: data.paymentReceiptUrl,
             paymentStatus: initialPaymentStatus,
@@ -92,51 +103,50 @@ export class OrderRepository {
             user: true,
           },
         });
+        // Also save to disk store for offline redundancy
+        OrderFileStore.createOrder(order);
         return order;
       });
     } catch (err) {
-      const newOrder: any = {
-        id: `ord-${Date.now()}`,
-        orderNumber: Math.floor(1000 + Math.random() * 9000),
+      // Persistent file store fallback
+      return OrderFileStore.createOrder({
         userId,
+        customerName: data.customerName || 'Mijoz',
         deliveryType: data.deliveryType,
         deliveryRegion: 'Sirdaryo tumani',
         mahalla: data.mahalla,
         street: data.street,
         houseNumber: data.houseNumber,
-        phone: data.phone,
+        phone: data.phone || data.customerPhone,
         deliveryAddress: data.deliveryAddress,
+        latitude: lat,
+        longitude: lng,
         paymentMode: data.paymentMode,
         paymentReceiptUrl: data.paymentReceiptUrl,
         paymentStatus: initialPaymentStatus,
         totalAmount,
         notes: data.notes,
         status: initialStatus,
-        createdAt: new Date(),
-        updatedAt: new Date(),
         items: itemsWithPrices.map((item, idx) => ({
           id: `item-${Date.now()}-${idx}`,
-          orderId: `ord-${Date.now()}`,
           productId: item.productId,
           productName: item.productName,
           price: item.price,
           quantity: item.quantity,
-          createdAt: new Date(),
+          createdAt: new Date().toISOString(),
         })),
         user: {
           id: userId,
           firstName: data.customerName || 'Mijoz',
           phone: data.phone || data.customerPhone || '',
         },
-      };
-      MOCK_ORDERS.unshift(newOrder);
-      return newOrder;
+      });
     }
   }
 
   async findById(id: string) {
     try {
-      return await prisma.order.findUnique({
+      const order = await prisma.order.findUnique({
         where: { id },
         include: {
           items: {
@@ -145,12 +155,14 @@ export class OrderRepository {
           user: true,
         },
       });
+      if (order) return order;
+      return OrderFileStore.findById(id);
     } catch (err) {
-      return MOCK_ORDERS.find((o) => o.id === id) || null;
+      return OrderFileStore.findById(id);
     }
   }
 
-  async findAll(filter: { telegramId?: number; status?: OrderStatus }) {
+  async findAll(filter: { telegramId?: number; status?: OrderStatus; query?: string; phone?: string }) {
     try {
       const where: any = {};
       if (filter.telegramId) {
@@ -159,8 +171,17 @@ export class OrderRepository {
       if (filter.status) {
         where.status = filter.status;
       }
+      if (filter.phone || filter.query) {
+        const q = (filter.phone || filter.query || '').trim();
+        where.OR = [
+          { phone: { contains: q } },
+          { deliveryAddress: { contains: q } },
+          { user: { phone: { contains: q } } },
+          { user: { firstName: { contains: q } } },
+        ];
+      }
 
-      return await prisma.order.findMany({
+      const orders = await prisma.order.findMany({
         where,
         include: {
           items: true,
@@ -168,28 +189,31 @@ export class OrderRepository {
         },
         orderBy: { createdAt: 'desc' },
       });
+
+      if (orders && orders.length > 0) return orders;
+      return OrderFileStore.findOrders(filter as any);
     } catch (err) {
-      let filtered = [...MOCK_ORDERS];
-      if (filter.status) {
-        filtered = filtered.filter((o) => o.status === filter.status);
-      }
-      return filtered;
+      return OrderFileStore.findOrders(filter as any);
     }
   }
 
-  async updateStatus(id: string, data: UpdateOrderStatusDTO) {
+  async updateStatus(id: string, data: UpdateOrderStatusDTO & { isArchived?: boolean }) {
     try {
-      const updateData: any = {
-        status: data.status,
-      };
+      const updateData: any = {};
+      if (data.status !== undefined) {
+        updateData.status = data.status;
+      }
       if (data.adminNotes !== undefined) {
         updateData.adminNotes = data.adminNotes;
       }
       if (data.paymentStatus !== undefined) {
         updateData.paymentStatus = data.paymentStatus;
       }
+      if (data.isArchived !== undefined) {
+        updateData.isArchived = data.isArchived;
+      }
 
-      return await prisma.$transaction(async (tx) => {
+      const updated = await prisma.$transaction(async (tx) => {
         return await tx.order.update({
           where: { id },
           data: updateData,
@@ -199,25 +223,21 @@ export class OrderRepository {
           },
         });
       });
+      OrderFileStore.updateOrder(id, updateData);
+      return updated;
     } catch (err) {
-      const index = MOCK_ORDERS.findIndex((o) => o.id === id);
-      if (index !== -1) {
-        MOCK_ORDERS[index] = {
-          ...MOCK_ORDERS[index],
-          status: data.status,
-          adminNotes: data.adminNotes ?? MOCK_ORDERS[index].adminNotes,
-          paymentStatus: data.paymentStatus ?? MOCK_ORDERS[index].paymentStatus,
-          updatedAt: new Date(),
-        };
-        return MOCK_ORDERS[index];
-      }
-      throw err;
+      return OrderFileStore.updateOrder(id, {
+        ...(data.status !== undefined && { status: data.status }),
+        ...(data.adminNotes !== undefined && { adminNotes: data.adminNotes }),
+        ...(data.paymentStatus !== undefined && { paymentStatus: data.paymentStatus }),
+        ...(data.isArchived !== undefined && { isArchived: data.isArchived }),
+      });
     }
   }
 
   async updateReceiptUrl(id: string, receiptUrl: string) {
     try {
-      return await prisma.order.update({
+      const updated = await prisma.order.update({
         where: { id },
         data: {
           paymentReceiptUrl: receiptUrl,
@@ -229,19 +249,43 @@ export class OrderRepository {
           user: true,
         },
       });
+      OrderFileStore.updateOrder(id, {
+        paymentReceiptUrl: receiptUrl,
+        paymentStatus: PaymentStatus.PENDING_VERIFICATION,
+        status: OrderStatus.RECEIPT_SUBMITTED,
+      });
+      return updated;
     } catch (err) {
-      const index = MOCK_ORDERS.findIndex((o) => o.id === id);
-      if (index !== -1) {
-        MOCK_ORDERS[index] = {
-          ...MOCK_ORDERS[index],
-          paymentReceiptUrl: receiptUrl,
-          paymentStatus: PaymentStatus.PENDING_VERIFICATION,
-          status: OrderStatus.RECEIPT_SUBMITTED,
-          updatedAt: new Date(),
-        };
-        return MOCK_ORDERS[index];
-      }
-      throw err;
+      return OrderFileStore.updateOrder(id, {
+        paymentReceiptUrl: receiptUrl,
+        paymentStatus: PaymentStatus.PENDING_VERIFICATION,
+        status: OrderStatus.RECEIPT_SUBMITTED,
+      });
+    }
+  }
+
+  async rateOrder(id: string, rating: number, review?: string) {
+    const updateData = {
+      rating,
+      review: review || null,
+      ratedAt: new Date().toISOString(),
+      status: OrderStatus.COMPLETED,
+    };
+    try {
+      const updated = await prisma.order.update({
+        where: { id },
+        data: {
+          status: OrderStatus.COMPLETED,
+        },
+        include: {
+          items: true,
+          user: true,
+        },
+      });
+      OrderFileStore.updateOrder(id, updateData);
+      return { ...updated, ...updateData };
+    } catch (err) {
+      return OrderFileStore.updateOrder(id, updateData);
     }
   }
 }

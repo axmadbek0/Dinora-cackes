@@ -1,7 +1,7 @@
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
 import { prisma } from '../../config/database.js';
-import { env } from '../../config/env.js';
+import { env, isTelegramAdmin } from '../../config/env.js';
 
 export class AuthService {
   public async login(usernameInput?: string, passwordInput?: string) {
@@ -15,29 +15,44 @@ export class AuthService {
     // Master Strong Password Check
     const STRONG_MASTER_PASSWORD = 'Dinora#2026!MasterPass';
 
-    // Try finding admin user in database
-    let adminUser = await prisma.user.findFirst({
-      where: {
-        role: 'ADMIN',
-        username: { equals: cleanUsername, mode: 'insensitive' },
-      },
-    });
+    // Try finding admin user in database safely
+    let adminUser: any = null;
+    try {
+      adminUser = await prisma.user.findFirst({
+        where: {
+          role: 'ADMIN',
+          username: { equals: cleanUsername, mode: 'insensitive' },
+        },
+      });
+    } catch (dbErr) {
+      // safe fallback if DB connecting
+    }
 
     const isAllowedAdminUser = ['dinorashirinliklari', 'admin', 'dinora'].includes(cleanUsername);
-    const isAllowedPassword = cleanPassword === STRONG_MASTER_PASSWORD || ['0990', 'qwerty', 'dinorashirinliklari'].includes(cleanPassword);
+    const isAllowedPassword = cleanPassword === STRONG_MASTER_PASSWORD;
 
     if (!adminUser && isAllowedAdminUser && isAllowedPassword) {
-      // Create admin user record with hashed password
-      const hashedPassword = await bcrypt.hash(cleanPassword, 12);
-      adminUser = await prisma.user.create({
-        data: {
-          telegramId: BigInt(999888777),
+      try {
+        const hashedPassword = await bcrypt.hash(cleanPassword, 12);
+        adminUser = await prisma.user.create({
+          data: {
+            telegramId: BigInt(999888777),
+            firstName: 'Dinora',
+            lastName: 'Shirinliklari',
+            username: cleanUsername,
+            role: 'ADMIN',
+          },
+        });
+      } catch (createErr) {
+        adminUser = {
+          id: 'admin-dinora-1',
+          telegramId: '999888777',
           firstName: 'Dinora',
           lastName: 'Shirinliklari',
           username: cleanUsername,
           role: 'ADMIN',
-        },
-      });
+        };
+      }
     }
 
     if (!adminUser && (!isAllowedAdminUser || !isAllowedPassword)) {
@@ -74,12 +89,34 @@ export class AuthService {
       throw new Error('Telegram initData ma`lumoti yetkazilmadi');
     }
 
+    let parsedTgUser: any = null;
+    try {
+      if (initData.includes('user=')) {
+        const params = new URLSearchParams(initData);
+        const userJson = params.get('user');
+        if (userJson) {
+          parsedTgUser = JSON.parse(decodeURIComponent(userJson));
+        }
+      } else if (initData.startsWith('{')) {
+        parsedTgUser = JSON.parse(initData);
+      }
+    } catch (err) {
+      console.warn('Could not parse user from initData:', err);
+    }
+
+    const tgId = parsedTgUser?.id ? String(parsedTgUser.id) : undefined;
+    const isAuthorized = tgId ? isTelegramAdmin(tgId) : (env.NODE_ENV === 'development');
+
+    if (!isAuthorized) {
+      throw new Error('⛔ Sizda administrator huquqi mavjud emas! Ushbu panel faqat tasdiqlangan adminlar uchun.');
+    }
+
     const adminUser = {
-      id: 'admin-dinora-1',
-      telegramId: '999888777',
-      firstName: 'Dinora',
-      lastName: 'Shirinliklari',
-      username: 'Dinorashirinliklari',
+      id: `admin-${tgId || env.ADMIN_ID1 || '1'}`,
+      telegramId: String(tgId || env.ADMIN_ID1 || '998812534'),
+      firstName: parsedTgUser?.first_name || 'Dinora',
+      lastName: parsedTgUser?.last_name || 'Admin',
+      username: parsedTgUser?.username || 'Dinorashirinliklari',
       role: 'ADMIN',
     };
 

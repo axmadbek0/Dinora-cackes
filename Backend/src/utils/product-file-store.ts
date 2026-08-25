@@ -50,7 +50,13 @@ export class ProductFileStore {
     const newProduct = {
       id: `prod-${Date.now()}`,
       name: data.name,
+      nameUz: data.nameUz || data.name,
+      nameUzCyrl: data.nameUzCyrl || null,
+      nameRu: data.nameRu || null,
       description: data.description || '',
+      descriptionUz: data.descriptionUz || data.description || '',
+      descriptionUzCyrl: data.descriptionUzCyrl || null,
+      descriptionRu: data.descriptionRu || null,
       price: data.price,
       imageUrl: data.imageUrl || '',
       isAvailable: data.isAvailable ?? true,

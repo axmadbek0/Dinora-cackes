@@ -1,9 +1,3 @@
-declare global {
-  interface Window {
-    Telegram?: any;
-  }
-}
-
 /**
  * Native Telegram WebApp Haptic Feedback Handler
  * Triggers physical vibration on mobile devices running inside Telegram WebApp

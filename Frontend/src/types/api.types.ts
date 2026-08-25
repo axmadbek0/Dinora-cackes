@@ -13,4 +13,5 @@ export interface AnalyticsSummary {
   monthlyRevenue: { month: string; revenue: number; orders: number }[];
   categoryDistribution: { category: string; count: number }[];
   orderStatusCounts: { status: string; count: number }[];
+  topProduct?: string | null;
 }

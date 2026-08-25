@@ -6,7 +6,7 @@ import { getCartInlineKeyboard } from '../keyboards/order.keyboard.js';
 export const cartHandler = new Composer<BotContext>();
 const productService = new ProductService();
 
-cartHandler.hears('🛒 Savatcha', async (ctx) => {
+cartHandler.hears(['🛒 Savatcha', '🛒 Саватча', '🛒 Корзина'], async (ctx) => {
   return renderCart(ctx);
 });
 

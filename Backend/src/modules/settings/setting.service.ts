@@ -1,4 +1,7 @@
 import { prisma } from '../../config/database.js';
+import { OrderFileStore } from '../../utils/order-file-store.js';
+import { CustomCakeFileStore } from '../../utils/custom-cake-file-store.js';
+import { UserFileStore } from '../../utils/user-file-store.js';
 
 export interface UpdateSystemSettingDTO {
   isStoreOpen?: boolean;
@@ -122,9 +125,16 @@ export class SettingService {
       console.warn('CustomCakes delete error (safe fallback):', (err as Error).message);
     }
 
+    // Also clear persistent disk file stores so new orders start from 1
+    const fileOrdersCount = OrderFileStore.getOrders().length;
+    const fileCakesCount = CustomCakeFileStore.getRequests().length;
+    OrderFileStore.saveOrders([]);
+    CustomCakeFileStore.saveRequests([]);
+    UserFileStore.saveUsers([]);
+
     return {
-      deletedOrders: deletedOrdersCount,
-      deletedCustomCakes: deletedCustomCakesCount,
+      deletedOrders: Math.max(deletedOrdersCount, fileOrdersCount),
+      deletedCustomCakes: Math.max(deletedCustomCakesCount, fileCakesCount),
     };
   }
 }

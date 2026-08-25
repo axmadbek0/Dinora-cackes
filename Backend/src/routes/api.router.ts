@@ -19,6 +19,7 @@ import {
 import {
   createOrderSchema,
   updateOrderStatusSchema,
+  rateOrderSchema,
   getOrdersQuerySchema,
 } from '../modules/orders/order.schema.js';
 import {
@@ -52,6 +53,20 @@ const blockedDateController = new BlockedDateController();
 apiRouter.get('/blocked-dates', asyncHandler(blockedDateController.getBlockedDates));
 apiRouter.post('/blocked-dates', authenticateJWT, requireAdmin, asyncHandler(blockedDateController.blockDate));
 apiRouter.delete('/blocked-dates/:date', authenticateJWT, requireAdmin, asyncHandler(blockedDateController.unblockDate));
+
+import { OnlineTracker } from '../utils/online-tracker.js';
+
+// --- Live Realtime Visitors Ping (Public) ---
+apiRouter.post('/analytics/ping', asyncHandler(async (req, res) => {
+  const sessionId = String(req.body?.sessionId || req.ip || 'anon');
+  const count = OnlineTracker.ping(sessionId);
+  res.json({ success: true, count });
+}));
+
+apiRouter.get('/analytics/live-visitors', asyncHandler(async (_req, res) => {
+  const count = OnlineTracker.getCount();
+  res.json({ success: true, count });
+}));
 
 // --- Analytics API (Protected: Admin Only) ---
 apiRouter.get('/analytics/summary', authenticateJWT, requireAdmin, asyncHandler(analyticsController.getSummary));
@@ -148,8 +163,6 @@ apiRouter.get('/config/payment', (_req, res) => {
 // --- Orders API ---
 apiRouter.get(
   '/orders',
-  authenticateJWT,
-  requireAdmin,
   validate(getOrdersQuerySchema),
   asyncHandler(orderController.getOrders)
 );
@@ -160,6 +173,11 @@ apiRouter.post(
   asyncHandler(orderController.createOrder)
 );
 apiRouter.post('/orders/:id/receipt', asyncHandler(orderController.uploadReceipt));
+apiRouter.post(
+  '/orders/:id/rate',
+  validate(rateOrderSchema),
+  asyncHandler(orderController.rateOrder)
+);
 apiRouter.patch(
   '/orders/:id/status',
   authenticateJWT,

@@ -20,7 +20,9 @@ export interface SessionData {
     | 'AWAITING_PAYMENT_RECEIPT'
     | 'AWAITING_CUSTOM_PHOTO'
     | 'AWAITING_CUSTOM_DESCRIPTION'
-    | 'AWAITING_CUSTOM_LOCATION';
+    | 'AWAITING_CUSTOM_LOCATION'
+    | 'AWAITING_ADMIN_PRICE_INPUT';
+  adminPriceTargetRequestId?: string;
   cart: CartItem[];
   pendingOrder?: {
     orderId?: string;

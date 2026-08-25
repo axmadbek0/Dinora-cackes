@@ -24,18 +24,25 @@ export const formatPhoneNumber = (input: string): string => {
 };
 
 /**
- * Short date formatter for order history
+ * Short date formatter for order history, e.g. "15-avgust, 18:43"
  */
 export const formatDate = (dateString: string): string => {
   try {
     const date = new Date(dateString);
-    return date.toLocaleDateString('uz-UZ', {
-      day: 'numeric',
-      month: 'short',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
+    if (isNaN(date.getTime())) return dateString;
+
+    const day = date.getDate();
+    const months = [
+      'yanvar', 'fevral', 'mart', 'aprel', 'may', 'iyun',
+      'iyul', 'avgust', 'sentyabr', 'oktyabr', 'noyabr', 'dekabr'
+    ];
+    const monthName = months[date.getMonth()];
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+
+    return `${day}-${monthName}, ${hours}:${minutes}`;
   } catch (e) {
     return dateString;
   }
 };
+

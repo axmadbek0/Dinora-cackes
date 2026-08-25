@@ -259,22 +259,28 @@ async function finalizeOrderCash(ctx: BotContext) {
   ctx.session.pendingOrder = undefined;
   ctx.session.step = 'IDLE';
 
+  const safeCustomerName = customerName.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  const safeDeliveryDistrict = deliveryDistrict.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  const safeAddress = (order.deliveryAddress || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  const safeUsername = (ctx.from?.username || 'yoq').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  const safePhone = (user?.phone || pending.phone || 'Yo\'q').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
   await ctx.reply(
-    `🎉 **Buyurtmangiz qabul qilindi!**\n\n🆔 Buyurtma №: **#${order.orderNumber}**\n👤 Mijoz: **${customerName}**\n📍 Hudud: **${deliveryDistrict}**\n💰 Jami: **${Number(order.totalAmount).toLocaleString('uz-UZ')} so'm**\n💵 To'lov usuli: **Naqd pul (Qabul qilinganda)**\n\nDINORA jamoasi tez orada bog'lanadi!`,
+    `🎉 <b>Buyurtmangiz qabul qilindi!</b>\n\n🆔 Buyurtma №: <b>#${order.orderNumber}</b>\n👤 Mijoz: <b>${safeCustomerName}</b>\n📍 Hudud: <b>${safeDeliveryDistrict}</b>\n💰 Jami: <b>${Number(order.totalAmount).toLocaleString('uz-UZ')} so'm</b>\n💵 To'lov usuli: <b>Naqd pul (Qabul qilinganda)</b>\n\nDINORA jamoasi tez orada bog'lanadi!`,
     {
-      parse_mode: 'Markdown',
+      parse_mode: 'HTML',
       reply_markup: getMainKeyboard(),
     }
   );
 
   // Notify admins
-  const adminMsg = `🆕 **YANGI BUYURTMA #${order.orderNumber}**\n👤 Mijoz: ${customerName} (@${ctx.from?.username || 'yoq'})\n📞 Tel: ${user?.phone || pending.phone || 'Yo\'q'}\n📍 Manzil: ${order.deliveryAddress}\n💰 Summa: ${Number(order.totalAmount).toLocaleString('uz-UZ')} UZS\n💵 To'lov: Naqd pul`;
+  const adminMsg = `🆕 <b>YANGI BUYURTMA #${order.orderNumber}</b>\n👤 Mijoz: <b>${safeCustomerName}</b> (@${safeUsername})\n📞 Tel: <b>${safePhone}</b>\n📍 Manzil: ${safeAddress}\n💰 Summa: <b>${Number(order.totalAmount).toLocaleString('uz-UZ')} UZS</b>\n💵 To'lov: Naqd pul`;
 
   Promise.all(
     env.ADMIN_IDS.map((adminId) =>
       ctx.api.sendMessage(adminId, adminMsg, {
-        parse_mode: 'Markdown',
-        reply_markup: getAdminOrderApprovalKeyboard(order.id),
+        parse_mode: 'HTML',
+        reply_markup: getAdminOrderApprovalKeyboard(order.id, env.FRONTEND_WEB_URL),
       })
     )
   ).catch((err) => console.error('Error notifying admins:', err));
@@ -293,23 +299,77 @@ checkoutHandler.on('message:photo', async (ctx) => {
     ctx.session.step = 'IDLE';
 
     await ctx.reply(
-      `✅ **To'lov cheki qabul qilindi!**\n\n🆔 Buyurtma №: **#${updatedOrder.orderNumber}**\n📍 Hudud: **Sirdaryo tumani**\n📄 Holati: **Admin tasdiqlashi kutilmoqda...**\n\nDINORA jamoasi chekni tekshirib, tez orada buyurtmangizni tasdiqlaydi! ✨`,
+      `✅ <b>To'lov cheki qabul qilindi!</b>\n\n🆔 Buyurtma №: <b>#${updatedOrder.orderNumber}</b>\n📍 Hudud: <b>Sirdaryo tumani</b>\n📄 Holati: <b>Admin tasdiqlashi kutilmoqda...</b>\n\nDINORA jamoasi chekni tekshirib, tez orada buyurtmangizni tasdiqlaydi! ✨`,
       {
-        parse_mode: 'Markdown',
+        parse_mode: 'HTML',
         reply_markup: getMainKeyboard(),
       }
     );
 
-    const adminCaption = `🆕 **YANGI BUYURTMA #${updatedOrder.orderNumber}**\n👤 Mijoz: ${ctx.from?.first_name} (@${ctx.from?.username || 'yoq'})\n📞 Tel: ${updatedOrder.user?.phone || updatedOrder.phone || 'Yo\'q'}\n📍 Manzil: ${updatedOrder.deliveryAddress}\n💰 Summa: ${Number(updatedOrder.totalAmount).toLocaleString('uz-UZ')} UZS\n📄 Holati: Chek yuklandi (Tasdiqlash kutilmoqda)`;
+    const safeFirstName = (ctx.from?.first_name || 'Mijoz').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    const safeUser = (ctx.from?.username || 'yoq').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    const safePhone = (updatedOrder.user?.phone || updatedOrder.phone || 'Yo\'q').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    const safeAddress = (updatedOrder.deliveryAddress || 'Kiritilmagan').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+    const adminCaption = `🆕 <b>YANGI BUYURTMA #${updatedOrder.orderNumber}</b>\n👤 Mijoz: <b>${safeFirstName}</b> (@${safeUser})\n📞 Tel: <b>${safePhone}</b>\n📍 Manzil: ${safeAddress}\n💰 Summa: <b>${Number(updatedOrder.totalAmount).toLocaleString('uz-UZ')} UZS</b>\n📄 Holati: Chek yuklandi (Tasdiqlash kutilmoqda)`;
 
     Promise.all(
       env.ADMIN_IDS.map((adminId) =>
         ctx.api.sendPhoto(adminId, photoFileId, {
           caption: adminCaption,
-          parse_mode: 'Markdown',
-          reply_markup: getAdminOrderApprovalKeyboard(updatedOrder.id),
+          parse_mode: 'HTML',
+          reply_markup: getAdminOrderApprovalKeyboard(updatedOrder.id, env.FRONTEND_WEB_URL),
         })
       )
     ).catch((err) => console.error('Error sending receipt to admin:', err));
   }
 });
+
+// Customer confirms receiving order in Telegram
+checkoutHandler.callbackQuery(/^customer_received_order_(.+)$/, async (ctx) => {
+  ctx.answerCallbackQuery().catch(() => {});
+  const orderId = ctx.match[1];
+  try {
+    const order = await orderService.updateOrderStatus(orderId, {
+      status: 'COMPLETED' as any,
+      adminNotes: 'Confirmed received by customer via Telegram Bot',
+    });
+
+    const ratingKb = new InlineKeyboard()
+      .text('⭐ 1', `rate_order_${orderId}_1`)
+      .text('⭐ 2', `rate_order_${orderId}_2`)
+      .text('⭐ 3', `rate_order_${orderId}_3`)
+      .text('⭐ 4', `rate_order_${orderId}_4`)
+      .text('⭐ 5', `rate_order_${orderId}_5`);
+
+    await ctx.reply(
+      `🎂 <b>Buyurtma №#${order.orderNumber} qabul qilindi!</b>\n\nDINORA shirinliklarini tanlaganingiz uchun tashakkur! Yoqimli ishtaha! 🎉\n\nIltimos, xizmatimiz sifatini <b>1 dan 5 yulduzgacha</b> baholang:`,
+      {
+        parse_mode: 'HTML',
+        reply_markup: ratingKb,
+      }
+    );
+  } catch (err: any) {
+    await ctx.reply(`Xatolik yuz berdi: ${err.message}`);
+  }
+});
+
+// Customer rates order with 1-5 stars in Telegram
+checkoutHandler.callbackQuery(/^rate_order_(.+)_([1-5])$/, async (ctx) => {
+  ctx.answerCallbackQuery({ text: 'Baholaganingiz uchun rahmat!' }).catch(() => {});
+  const orderId = ctx.match[1];
+  const rating = parseInt(ctx.match[2], 10);
+
+  try {
+    const order = await orderService.rateOrder(orderId, rating);
+    const stars = '⭐'.repeat(rating);
+
+    await ctx.editMessageText(
+      `✨ <b>Katta rahmat!</b>\n\nSiz <b>#${order.orderNumber}</b> sonli buyurtmaga <b>${stars} (${rating}/5)</b> baho qoldirdingiz!\n\nBiz siz uchun yanada mazali va sifatli shirinliklar tayyorlashda davom etamiz! ❤️`,
+      { parse_mode: 'HTML' }
+    );
+  } catch (err: any) {
+    await ctx.reply(`Baho saqlanmadi: ${err.message}`);
+  }
+});
+

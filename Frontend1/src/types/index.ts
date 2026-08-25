@@ -21,6 +21,41 @@ export interface CartItem {
 export type DeliveryType = 'DELIVERY' | 'PICKUP';
 export type PaymentMode = 'CLICK' | 'PAYME' | 'CARD_TRANSFER' | 'CASH';
 
+export enum UserRole {
+  USER = 'USER',
+  ADMIN = 'ADMIN',
+}
+
+export interface User {
+  id: string;
+  telegramId: string | number;
+  firstName?: string | null;
+  lastName?: string | null;
+  username?: string | null;
+  phone?: string | null;
+  role: UserRole;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface SystemSetting {
+  id: string;
+  isStoreOpen: boolean;
+  deliveryFee: number;
+  minOrderAmount: number;
+  workingHoursStart: string;
+  workingHoursEnd: string;
+  workingDays?: string;
+  deliveryAddressText?: string;
+  adminPhonePrimary: string;
+  adminPhoneSecondary: string;
+  instagramUrl: string;
+  instagramUsername?: string;
+  autoAcceptOrders: boolean;
+  maintenanceMode: boolean;
+  updatedAt: string;
+}
+
 export type CustomCakeStatus =
   | 'PENDING_PRICING'
   | 'PRICE_OFFERED'
@@ -28,6 +63,15 @@ export type CustomCakeStatus =
   | 'REJECTED'
   | 'COMPLETED'
   | 'CANCELLED';
+
+export const CustomCakeStatusEnum = {
+  PENDING_PRICING: 'PENDING_PRICING' as CustomCakeStatus,
+  PRICE_OFFERED: 'PRICE_OFFERED' as CustomCakeStatus,
+  ACCEPTED: 'ACCEPTED' as CustomCakeStatus,
+  REJECTED: 'REJECTED' as CustomCakeStatus,
+  COMPLETED: 'COMPLETED' as CustomCakeStatus,
+  CANCELLED: 'CANCELLED' as CustomCakeStatus,
+};
 
 export interface OrderItemPayload {
   productId: string;
@@ -38,6 +82,9 @@ export interface OrderItemPayload {
 
 export interface CreateOrderPayload extends CreateOrderDto {
   paymentMode: PaymentMode;
+  deliveryType?: DeliveryType;
+  latitude?: number | null;
+  longitude?: number | null;
   paymentReceiptUrl?: string;
   notes?: string;
   telegramId?: number;
@@ -61,6 +108,9 @@ export interface Order {
   notes?: string | null;
   createdAt: string;
   phone: string;
+  rating?: number | null;
+  review?: string | null;
+  ratedAt?: string | null;
   items: {
     id: string;
     productName: string;

@@ -7,6 +7,13 @@
     scroll-behavior: smooth;
     -webkit-tap-highlight-color: transparent;
     overscroll-behavior-y: none;
+    touch-action: manipulation;
+  }
+
+  body, html {
+    overflow-x: hidden;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
   }
 
   html, body, #root {
@@ -23,6 +30,25 @@
 
   h1, h2, h3, .font-serif {
     font-family: 'Playfair Display', Georgia, serif;
+  }
+}
+
+@layer utilities {
+  /* Safe area padding for iPhones and Telegram Mini App headers */
+  .safe-area-bottom {
+    padding-bottom: env(safe-area-inset-bottom, 16px);
+  }
+  .safe-area-top {
+    padding-top: env(safe-area-inset-top, 16px);
+  }
+
+  /* Hide scrollbars for clean horizontal slider pills */
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
   }
 }
 
@@ -52,3 +78,4 @@
   -webkit-backdrop-filter: blur(12px);
   border: 1px solid rgba(229, 231, 235, 0.8);
 }
+

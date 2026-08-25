@@ -1,98 +1,180 @@
 import { prisma } from '../../config/database.js';
+import { ProductFileStore } from '../../utils/product-file-store.js';
+import { OrderFileStore } from '../../utils/order-file-store.js';
+import { CustomCakeFileStore } from '../../utils/custom-cake-file-store.js';
 
 export class AnalyticsService {
   async getSummary() {
+    let orders: any[] = [];
+    let products: any[] = [];
+    let customCakes: any[] = [];
+    let categories: any[] = [];
+
+    // 1. Fetch Orders (Prisma DB with OrderFileStore fallback)
     try {
-      const [
-        totalOrders,
-        pendingCustomCakes,
-        activeProducts,
-        orders,
-        categories,
-      ] = await Promise.all([
-        prisma.order.count(),
-        prisma.customCakeRequest.count({
-          where: { status: 'PENDING_PRICING' },
-        }),
-        prisma.product.count({
-          where: { isAvailable: true },
-        }),
-        prisma.order.findMany({
-          select: {
-            totalAmount: true,
-            status: true,
-            createdAt: true,
-          },
-        }),
-        prisma.category.findMany({
-          include: {
-            _count: {
-              select: { products: true },
-            },
-          },
-        }),
-      ]);
+      orders = await prisma.order.findMany({
+        include: {
+          items: true,
+          user: true,
+        },
+        orderBy: { createdAt: 'desc' },
+      });
+      if (!orders || orders.length === 0) {
+        orders = OrderFileStore.getOrders();
+      }
+    } catch {
+      orders = OrderFileStore.getOrders();
+    }
 
-      const totalRevenue = orders.reduce((sum, o) => sum + Number(o.totalAmount || 0), 0);
+    // 2. Fetch Products
+    try {
+      products = await prisma.product.findMany({
+        include: {
+          category: true,
+        },
+      });
+      if (!products || products.length === 0) {
+        products = ProductFileStore.getProducts();
+      }
+    } catch {
+      products = ProductFileStore.getProducts();
+    }
 
-      // Status count aggregation
-      const statusMap: Record<string, number> = {};
+    // 3. Fetch Custom Cakes
+    try {
+      customCakes = await prisma.customCakeRequest.findMany({
+        include: {
+          user: true,
+        },
+      });
+      if (!customCakes || customCakes.length === 0) {
+        customCakes = CustomCakeFileStore.getRequests();
+      }
+    } catch {
+      customCakes = CustomCakeFileStore.getRequests();
+    }
+
+    // 4. Fetch Categories
+    try {
+      categories = await prisma.category.findMany({
+        include: {
+          _count: {
+            select: { products: true },
+          },
+        },
+      });
+      if (!categories || categories.length === 0) {
+        categories = ProductFileStore.getCategories();
+      }
+    } catch {
+      categories = ProductFileStore.getCategories();
+    }
+
+    // Calculations:
+    const totalOrders = orders.length;
+    const pendingCustomCakes = customCakes.filter(
+      (c) => c.status === 'PENDING_PRICING' || c.status === 'PENDING'
+    ).length;
+    const activeProducts = products.filter((p) => p.isAvailable !== false).length;
+
+    // Total Revenue (all non-rejected/cancelled orders)
+    const totalRevenue = orders.reduce((sum, o) => {
+      if (o.status === 'REJECTED' || o.status === 'CANCELLED' || o.status === 'CANCELED') {
+        return sum;
+      }
+      return sum + Number(o.totalAmount || 0);
+    }, 0);
+
+    // Status map
+    const statusMap: Record<string, number> = {};
+    orders.forEach((o) => {
+      let normalizedStatus = o.status;
+      if (normalizedStatus === 'AWAITING_RECEIPT' || normalizedStatus === 'RECEIPT_SUBMITTED') {
+        normalizedStatus = 'PENDING_APPROVAL';
+      } else if (normalizedStatus === 'CANCELED' || normalizedStatus === 'REJECTED') {
+        normalizedStatus = 'CANCELLED';
+      }
+      statusMap[normalizedStatus] = (statusMap[normalizedStatus] || 0) + 1;
+    });
+
+    const orderStatusCounts = Object.keys(statusMap).map((status) => ({
+      status,
+      count: statusMap[status],
+    }));
+
+    // Category distribution
+    const categoryCountMap: Record<string, number> = {};
+    products.forEach((p) => {
+      const catName = p.category?.name || 'Boshqa';
+      categoryCountMap[catName] = (categoryCountMap[catName] || 0) + 1;
+    });
+
+    const categoryDistribution = Object.keys(categoryCountMap).map((category) => ({
+      category,
+      count: categoryCountMap[category],
+    }));
+
+    // Monthly revenue calculation (Past 6 months dynamic grouping)
+    const monthNames = ['Yan', 'Fev', 'Mar', 'Apr', 'May', 'Iyun', 'Iyul', 'Avg', 'Sen', 'Okt', 'Noy', 'Dek'];
+    const now = new Date();
+    const monthlyRevenue: Array<{ month: string; revenue: number; orders: number }> = [];
+
+    for (let i = 5; i >= 0; i--) {
+      const targetDate = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const targetYear = targetDate.getFullYear();
+      const targetMonth = targetDate.getMonth();
+      const monthLabel = monthNames[targetMonth];
+
+      let monthRev = 0;
+      let monthOrderCount = 0;
+
       orders.forEach((o) => {
-        statusMap[o.status] = (statusMap[o.status] || 0) + 1;
+        const orderDate = new Date(o.createdAt);
+        if (
+          !isNaN(orderDate.getTime()) &&
+          orderDate.getFullYear() === targetYear &&
+          orderDate.getMonth() === targetMonth
+        ) {
+          if (o.status !== 'REJECTED' && o.status !== 'CANCELLED' && o.status !== 'CANCELED') {
+            monthRev += Number(o.totalAmount || 0);
+          }
+          monthOrderCount += 1;
+        }
       });
 
-      const orderStatusCounts = Object.keys(statusMap).map((status) => ({
-        status,
-        count: statusMap[status],
-      }));
+      monthlyRevenue.push({
+        month: monthLabel,
+        revenue: monthRev,
+        orders: monthOrderCount,
+      });
+    }
 
-      // Category distribution
-      const categoryDistribution = categories.map((cat) => ({
-        category: cat.name,
-        count: cat._count.products,
-      }));
-
-      // Monthly revenue calculation
-      const currentMonthIndex = new Date().getMonth();
-      const monthNames = ['Yan', 'Fev', 'Mar', 'Apr', 'May', 'Iyun', 'Iyul', 'Avg', 'Sen', 'Okt', 'Noy', 'Dek'];
-      const monthlyRevenue = [];
-
-      for (let i = 5; i >= 0; i--) {
-        const idx = (currentMonthIndex - i + 12) % 12;
-        monthlyRevenue.push({
-          month: monthNames[idx],
-          revenue: i === 0 ? totalRevenue : 0,
-          orders: i === 0 ? totalOrders : 0,
+    // Top selling product calculation
+    const productSalesMap: Record<string, { name: string; count: number }> = {};
+    orders.forEach((o) => {
+      if (o.items && Array.isArray(o.items)) {
+        o.items.forEach((item: any) => {
+          const name = item.productName || item.product?.name || 'Noma\'lum';
+          if (!productSalesMap[name]) {
+            productSalesMap[name] = { name, count: 0 };
+          }
+          productSalesMap[name].count += Number(item.quantity || 1);
         });
       }
+    });
 
-      return {
-        totalRevenue: totalRevenue,
-        totalOrders: totalOrders,
-        pendingCustomCakes: pendingCustomCakes,
-        activeProducts: activeProducts,
-        monthlyRevenue,
-        categoryDistribution,
-        orderStatusCounts,
-      };
-    } catch (err) {
-      // Fallback clean zero baseline
-      return {
-        totalRevenue: 0,
-        totalOrders: 0,
-        pendingCustomCakes: 0,
-        activeProducts: 0,
-        monthlyRevenue: [
-          { month: 'Yan', revenue: 0, orders: 0 },
-          { month: 'Fev', revenue: 0, orders: 0 },
-          { month: 'Mar', revenue: 0, orders: 0 },
-          { month: 'Apr', revenue: 0, orders: 0 },
-          { month: 'May', revenue: 0, orders: 0 },
-          { month: 'Iyun', revenue: 0, orders: 0 },
-        ],
-        categoryDistribution: [],
-        orderStatusCounts: [],
-      };
-    }
+    const topProducts = Object.values(productSalesMap).sort((a, b) => b.count - a.count);
+    const topProduct = topProducts.length > 0 ? topProducts[0].name : (products[0]?.name || null);
+
+    return {
+      totalRevenue,
+      totalOrders,
+      pendingCustomCakes,
+      activeProducts,
+      monthlyRevenue,
+      categoryDistribution,
+      orderStatusCounts,
+      topProduct,
+    };
   }
 }

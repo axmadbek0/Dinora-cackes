@@ -33,6 +33,8 @@ export const createOrderSchema = z.object({
     notes: z.string().optional().nullable(),
     deliveryType: z.string().optional().nullable(),
     addressDetails: z.string().optional().nullable(),
+    latitude: z.union([z.number(), z.string()]).optional().nullable(),
+    longitude: z.union([z.number(), z.string()]).optional().nullable(),
   }),
 });
 
@@ -62,12 +64,27 @@ export const updateOrderStatusSchema = z.object({
   }),
 });
 
+export const rateOrderSchema = z.object({
+  params: z.object({
+    id: z.string().min(1, 'Order ID is required'),
+  }),
+  body: z.object({
+    rating: z.number().min(1).max(5),
+    review: z.string().optional().nullable(),
+  }),
+});
+
 export const getOrdersQuerySchema = z.object({
   query: z.object({
     telegramId: z.string().optional(),
     status: z.string().optional(),
+    query: z.string().optional(),
+    search: z.string().optional(),
+    phone: z.string().optional(),
+    id: z.string().optional(),
   }),
 });
 
 export type CreateOrderDTO = z.infer<typeof createOrderSchema>['body'];
 export type UpdateOrderStatusDTO = z.infer<typeof updateOrderStatusSchema>['body'];
+export type RateOrderDTO = z.infer<typeof rateOrderSchema>['body'];

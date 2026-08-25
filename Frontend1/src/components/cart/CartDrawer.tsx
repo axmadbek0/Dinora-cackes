@@ -4,6 +4,7 @@ import { useTelegram } from '../../context/TelegramContext';
 import { formatUZS } from '../../utils/formatters';
 import { createOrder } from '../../services/api';
 import { triggerSuccessHaptic, triggerHaptic } from '../../utils/haptics';
+import { getImageUrl } from '../../utils/imageUrl';
 import type { DeliveryType, PaymentMode } from '../../types';
 import { X, Plus, Minus, Trash2, ShoppingBag, Send, AlertTriangle, MapPin, CreditCard, Banknote } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -106,7 +107,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose, onOrder
             <div className="p-5 border-b border-[#2B1810]/10 flex items-center justify-between bg-[#FAF6F0]">
               <div className="flex items-center space-x-2.5">
                 <img
-                  src="/carts/logotip.jpg"
+                  src="/products/logotip.png"
                   alt="DINORA Logo"
                   className="w-7 h-7 rounded-full object-cover border border-[#CBB279] shadow-sm shrink-0"
                 />
@@ -150,8 +151,11 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose, onOrder
                     className="flex items-center space-x-3 bg-[#FAF6F0] p-3 rounded-2xl border border-[#2B1810]/5 shadow-sm"
                   >
                     <img
-                      src={product.imageUrl || '/products/pistachio_berry_cake.jpg'}
+                      src={getImageUrl(product.imageUrl, '/products/logotip.png')}
                       alt={product.name}
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).src = '/products/logotip.png';
+                      }}
                       className="w-16 h-16 object-cover rounded-xl shrink-0"
                     />
 
@@ -221,7 +225,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose, onOrder
                             : 'bg-gray-50 text-[#6B5B52] border-gray-200'
                         }`}
                       >
-                        🛍️ Yetkazib berish
+                        🛍️ Yetkazib berish (2 km bepul)
                       </button>
                       <button
                         type="button"
@@ -235,7 +239,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose, onOrder
                             : 'bg-gray-50 text-[#6B5B52] border-gray-200'
                         }`}
                       >
-                        🏪 Olib ketish
+                        🏪 Olib ketish (Bepul)
                       </button>
                     </div>
                   </div>

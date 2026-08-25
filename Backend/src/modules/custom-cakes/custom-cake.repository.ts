@@ -1,9 +1,7 @@
 import { prisma } from '../../config/database.js';
 import { CreateCustomCakeDTO, UpdateCustomCakeStatusDTO } from './custom-cake.schema.js';
 import { CustomCakeStatus } from '@prisma/client';
-
-// In-memory cache for fallback when database is unavailable
-const MOCK_CUSTOM_CAKES: any[] = [];
+import { CustomCakeFileStore } from '../../utils/custom-cake-file-store.js';
 
 export class CustomCakeRepository {
   async upsertUser(
@@ -13,7 +11,6 @@ export class CustomCakeRepository {
     lastName?: string,
     username?: string
   ) {
-    // Generate a fallback numeric ID if telegramId is not provided
     const cleanPhoneDigits = (phone || '').replace(/\D/g, '');
     const fallbackId = cleanPhoneDigits ? parseInt(cleanPhoneDigits.slice(-9), 10) : Math.floor(100000 + Math.random() * 900000);
     const validTelegramId = telegramId ? BigInt(telegramId) : BigInt(fallbackId);
@@ -51,63 +48,65 @@ export class CustomCakeRepository {
   }
 
   async create(userId: string, data: CreateCustomCakeDTO) {
-    // Determine main reference image URL
     const imageUrl = data.referenceImageUrl || (data.referenceImages && data.referenceImages.length > 0 ? data.referenceImages[0] : null);
+    const lat = typeof data.latitude === 'number' ? data.latitude : (data.latitude ? parseFloat(data.latitude) : null);
+    const lng = typeof data.longitude === 'number' ? data.longitude : (data.longitude ? parseFloat(data.longitude) : null);
 
     try {
-      return await prisma.customCakeRequest.create({
+      const created = await prisma.customCakeRequest.create({
         data: {
           userId,
           referenceImageUrl: imageUrl,
           description: data.description,
-          deliveryType: data.deliveryType,
+          deliveryType: (data.deliveryType as any) || 'DELIVERY',
           deliveryAddress: data.deliveryAddress,
-          latitude: data.latitude,
-          longitude: data.longitude,
+          latitude: lat,
+          longitude: lng,
           status: CustomCakeStatus.PENDING_PRICING,
         },
         include: {
           user: true,
         },
       });
+      CustomCakeFileStore.createRequest(created);
+      return created;
     } catch (err) {
-      const newCake: any = {
-        id: `cake-req-${Date.now()}`,
-        requestNumber: Math.floor(500 + Math.random() * 500),
+      return CustomCakeFileStore.createRequest({
         userId,
         referenceImageUrl: imageUrl,
         referenceImages: data.referenceImages || (imageUrl ? [imageUrl] : []),
-        photos: data.referenceImages || (imageUrl ? [imageUrl] : []),
         description: data.description,
         deliveryType: data.deliveryType,
         deliveryAddress: data.deliveryAddress,
+        latitude: lat,
+        longitude: lng,
         estimatedPrice: null,
-        status: CustomCakeStatus.PENDING_PRICING,
-        createdAt: new Date(),
-        updatedAt: new Date(),
+        status: 'PENDING_PRICING',
+        customerName: data.firstName || 'Storefront Mijoz',
+        phone: data.phone || '',
         user: {
           id: userId,
           firstName: data.firstName || 'Storefront Mijoz',
           phone: data.phone || '',
         },
-      };
-      MOCK_CUSTOM_CAKES.unshift(newCake);
-      return newCake;
+      });
     }
   }
 
   async findById(id: string) {
     try {
-      return await prisma.customCakeRequest.findUnique({
+      const cake = await prisma.customCakeRequest.findUnique({
         where: { id },
         include: { user: true },
       });
+      if (cake) return cake;
+      return CustomCakeFileStore.findById(id);
     } catch (err) {
-      return MOCK_CUSTOM_CAKES.find((c) => c.id === id) || null;
+      return CustomCakeFileStore.findById(id);
     }
   }
 
-  async findAll(filter: { telegramId?: number; status?: CustomCakeStatus }) {
+  async findAll(filter: { telegramId?: number; status?: CustomCakeStatus; query?: string; phone?: string }) {
     try {
       const where: any = {};
       if (filter.telegramId) {
@@ -116,18 +115,24 @@ export class CustomCakeRepository {
       if (filter.status) {
         where.status = filter.status;
       }
+      if (filter.phone || filter.query) {
+        const q = (filter.phone || filter.query || '').trim();
+        where.OR = [
+          { deliveryAddress: { contains: q } },
+          { user: { phone: { contains: q } } },
+          { user: { firstName: { contains: q } } },
+        ];
+      }
 
-      return await prisma.customCakeRequest.findMany({
+      const list = await prisma.customCakeRequest.findMany({
         where,
         include: { user: true },
         orderBy: { createdAt: 'desc' },
       });
+      if (list && list.length > 0) return list;
+      return CustomCakeFileStore.findRequests(filter as any);
     } catch (err) {
-      let filtered = [...MOCK_CUSTOM_CAKES];
-      if (filter.status) {
-        filtered = filtered.filter((c) => c.status === filter.status);
-      }
-      return filtered;
+      return CustomCakeFileStore.findRequests(filter as any);
     }
   }
 
@@ -145,24 +150,19 @@ export class CustomCakeRepository {
         updateData.adminNotes = data.adminNotes;
       }
 
-      return await prisma.customCakeRequest.update({
+      const updated = await prisma.customCakeRequest.update({
         where: { id },
         data: updateData,
         include: { user: true },
       });
+      CustomCakeFileStore.updateRequest(id, updateData);
+      return updated;
     } catch (err) {
-      const index = MOCK_CUSTOM_CAKES.findIndex((c) => c.id === id);
-      if (index !== -1) {
-        MOCK_CUSTOM_CAKES[index] = {
-          ...MOCK_CUSTOM_CAKES[index],
-          status: data.status,
-          estimatedPrice: data.estimatedPrice ?? MOCK_CUSTOM_CAKES[index].estimatedPrice,
-          adminNotes: data.adminNotes ?? MOCK_CUSTOM_CAKES[index].adminNotes,
-          updatedAt: new Date(),
-        };
-        return MOCK_CUSTOM_CAKES[index];
-      }
-      throw err;
+      return CustomCakeFileStore.updateRequest(id, {
+        status: data.status,
+        estimatedPrice: data.estimatedPrice,
+        adminNotes: data.adminNotes,
+      });
     }
   }
 }

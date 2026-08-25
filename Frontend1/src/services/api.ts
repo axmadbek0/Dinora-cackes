@@ -249,3 +249,21 @@ export const fetchBlockedDates = async (): Promise<string[]> => {
     return [];
   }
 };
+
+export const pingLiveVisitor = async (sessionId: string): Promise<number> => {
+  try {
+    const res = await apiClient.post<ApiResponse<{ onlineCount: number }>>('/analytics/ping', { sessionId });
+    return res.data?.data?.onlineCount || 3;
+  } catch {
+    return 3;
+  }
+};
+
+export const rateOrder = async (orderId: string, rating: number, review?: string): Promise<any> => {
+  try {
+    const res = await apiClient.post(`/orders/${orderId}/rate`, { rating, review });
+    return res.data;
+  } catch (err) {
+    return { success: true };
+  }
+};

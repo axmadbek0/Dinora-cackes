@@ -10,7 +10,16 @@ import { prisma } from '../../config/database.js';
 export const customCakeHandler = new Composer<BotContext>();
 const customCakeService = new CustomCakeService();
 
-customCakeHandler.hears('✨ O\'zim xohlaganimdek', async (ctx) => {
+customCakeHandler.hears(
+  [
+    '✨ O\'zim xohlaganimdek',
+    '✨ Ўзим хоҳлаганимдек',
+    '✨ Свой дизайн торта',
+    '🎂 O\'zim xohlaganimdek',
+    '🎂 Ўзим хоҳлаганимдек',
+    '🎂 Индивидуальный торт',
+  ],
+  async (ctx) => {
   ctx.session.pendingCustomCake = {};
   ctx.session.step = 'AWAITING_CUSTOM_PHOTO';
 
@@ -113,29 +122,34 @@ async function finalizeCustomCake(ctx: BotContext) {
   ctx.session.pendingCustomCake = undefined;
   ctx.session.step = 'IDLE';
 
+  const safeDescription = (cakeRequest.description || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  const safeCustomerName = (ctx.from?.first_name || 'Mijoz').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  const safeUsername = (ctx.from?.username || 'username_yoq').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  const safePhone = (user?.phone || 'Yo\'q').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
   await ctx.reply(
-    `✨ **Maxsus buyurtma so'rovingiz qabul qilindi!**\n\n🆔 So'rov №: **${cakeRequest.requestNumber}**\n📝 Tavsif: ${cakeRequest.description}\n\nQonditerimiz so'rovni ko'rib chiqib, narxini ma'lum qiladi!`,
+    `✨ <b>Maxsus buyurtma so'rovingiz qabul qilindi!</b>\n\n🆔 So'rov №: <b>${cakeRequest.requestNumber}</b>\n📝 Tavsif: ${safeDescription}\n\nQonditerimiz so'rovni ko'rib chiqib, narxini ma'lum qiladi!`,
     {
-      parse_mode: 'Markdown',
+      parse_mode: 'HTML',
       reply_markup: getMainKeyboard(),
     }
   );
 
   // Notify admins
-  const adminMsg = `✨ **Yangi Maxsus Tort So'rovi №${cakeRequest.requestNumber}**\n👤 Mijoz: ${ctx.from?.first_name} (@${ctx.from?.username || 'username_yoq'})\n📞 Tel: ${user?.phone || 'Yo\'q'}\n📝 Tavsif: ${cakeRequest.description}\n🚖 Yetkazib berish: ${cakeRequest.deliveryType}`;
+  const adminMsg = `✨ <b>Yangi Maxsus Tort So'rovi №${cakeRequest.requestNumber}</b>\n👤 Mijoz: <b>${safeCustomerName}</b> (@${safeUsername})\n📞 Tel: <b>${safePhone}</b>\n📝 Tavsif: ${safeDescription}\n🚖 Yetkazib berish: ${cakeRequest.deliveryType}`;
 
   for (const adminId of env.ADMIN_IDS) {
     try {
       if (pending.referenceImageUrl) {
         await ctx.api.sendPhoto(adminId, pending.referenceImageUrl, {
           caption: adminMsg,
-          parse_mode: 'Markdown',
-          reply_markup: getAdminCustomCakePricingKeyboard(cakeRequest.id),
+          parse_mode: 'HTML',
+          reply_markup: getAdminCustomCakePricingKeyboard(cakeRequest.id, env.FRONTEND_WEB_URL),
         });
       } else {
         await ctx.api.sendMessage(adminId, adminMsg, {
-          parse_mode: 'Markdown',
-          reply_markup: getAdminCustomCakePricingKeyboard(cakeRequest.id),
+          parse_mode: 'HTML',
+          reply_markup: getAdminCustomCakePricingKeyboard(cakeRequest.id, env.FRONTEND_WEB_URL),
         });
       }
     } catch (err) {

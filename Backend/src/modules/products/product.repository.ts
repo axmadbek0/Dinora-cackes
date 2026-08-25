@@ -91,7 +91,13 @@ export class ProductRepository {
       return await prisma.product.create({
         data: {
           name: data.name,
+          nameUz: data.nameUz || data.name,
+          nameUzCyrl: data.nameUzCyrl || null,
+          nameRu: data.nameRu || null,
           description: data.description || '',
+          descriptionUz: data.descriptionUz || data.description || '',
+          descriptionUzCyrl: data.descriptionUzCyrl || null,
+          descriptionRu: data.descriptionRu || null,
           price: data.price,
           imageUrl: data.imageUrl || '',
           isAvailable: data.isAvailable ?? true,
@@ -110,7 +116,13 @@ export class ProductRepository {
     try {
       const updateData: any = {};
       if (data.name !== undefined) updateData.name = data.name;
+      if (data.nameUz !== undefined) updateData.nameUz = data.nameUz;
+      if (data.nameUzCyrl !== undefined) updateData.nameUzCyrl = data.nameUzCyrl;
+      if (data.nameRu !== undefined) updateData.nameRu = data.nameRu;
       if (data.description !== undefined) updateData.description = data.description;
+      if (data.descriptionUz !== undefined) updateData.descriptionUz = data.descriptionUz;
+      if (data.descriptionUzCyrl !== undefined) updateData.descriptionUzCyrl = data.descriptionUzCyrl;
+      if (data.descriptionRu !== undefined) updateData.descriptionRu = data.descriptionRu;
       if (data.price !== undefined) updateData.price = data.price;
       if (data.imageUrl !== undefined) updateData.imageUrl = data.imageUrl;
       if (data.isAvailable !== undefined) updateData.isAvailable = data.isAvailable;

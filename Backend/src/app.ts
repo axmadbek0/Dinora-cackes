@@ -30,7 +30,7 @@ export function createApp() {
         }
       },
       methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-      allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept'],
+      allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'X-Telegram-Init-Data', 'x-telegram-init-data'],
       credentials: true,
       optionsSuccessStatus: 204,
     })
@@ -43,8 +43,18 @@ export function createApp() {
   app.use(express.json({ limit: '5mb' }));
   app.use(express.urlencoded({ extended: true, limit: '5mb' }));
 
-  // Static uploads directory
-  app.use('/uploads', express.static(path.join(process.cwd(), 'public', 'uploads')));
+  // 1. Static uploads directory with explicit Cross-Origin headers
+  const publicUploadsPath = path.join(process.cwd(), 'public', 'uploads');
+  const rootUploadsPath = path.join(process.cwd(), 'uploads');
+
+  app.use('/uploads', (req, res, next) => {
+    res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    next();
+  }, express.static(publicUploadsPath, { maxAge: '1d' }));
+
+  app.use('/uploads', express.static(rootUploadsPath, { maxAge: '1d' }));
+  app.use('/public/uploads', express.static(publicUploadsPath, { maxAge: '1d' }));
 
   // Health checks
   app.get('/health', (_req, res) => {

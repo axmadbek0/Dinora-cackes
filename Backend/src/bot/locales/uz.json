@@ -1,0 +1,21 @@
+{
+  "welcome_title": "Assalomu alaykum va xush kelibsiz! ✨",
+  "welcome_message": "<b>DINORA Shirinliklari</b> rasmiy botiga xush kelibsiz!\n\nBizda eng sara va tabiiy masalliqlardan tayyorlangan eksklyuziv tortlar, Fransuz makaronlari, korpus pirojniylari va maxsus zakaz tortlar mavjud.\n\n👇 Quyidagi menyudan kerakli bo'limni tanlang:",
+  "open_store_btn": "🛍️ Shirinliklar Do'koni (Mini App)",
+  "custom_cake_btn": "✨ Maxsus Tort Buyurtma",
+  "my_orders_btn": "📦 Buyurtmalarim",
+  "contact_btn": "📞 Bog'lanish va Manzil",
+  "change_lang_btn": "🌐 Tilni o'zgartirish",
+  "choose_lang_title": "🌐 Iltimos, qulay tilni tanlang:",
+  "lang_changed": "✅ Til muvaffaqiyatli o'zgartirildi: <b>Lotin O'zbekcha 🇺🇿</b>",
+  "contact_message": "📍 <b>DINORA Pastry & Art Bakery</b>\n\n📌 <b>Manzil:</b> Sirdaryo tumani, M34 ko'chasi 9-uy\n📞 <b>Telefon:</b> +998 99 495 78 06\n📸 <b>Instagram:</b> @dinora_shirinliklari\n⏰ <b>Ish vaqti:</b> Har kuni 09:00 dan 21:00 gacha\n🚚 Sirdaryo tumani bo'ylab tezkor yetkazib berish mavjud!",
+  "no_active_orders": "Sizda hozircha aktiv buyurtmalar mavjud emas. Shirinliklar do'konidan buyurtma berishingiz mumkin!",
+  "order_approved_user": "✅ <b>Xushxabar!</b> Buyurtmangiz (№<b>#{{orderNumber}}</b>) tasdiqlandi va tayyorlash jarayoniga o'tdi! 🍰",
+  "order_rejected_user": "❌ Afsuski, buyurtmangiz (№<b>#{{orderNumber}}</b>) rad etildi. Savollar bo'lsa biz bilan bog'laning.",
+  "order_preparing_user": "👩‍🍳 <b>Buyurtmangiz tayyorlanmoqda!</b> (№<b>#{{orderNumber}}</b>)\nKonditerlarimiz siz uchun mazali shirinlik tayyorlamoqda!",
+  "order_delivering_user": "🚖 <b>Buyurtmangiz yo'lga chiqdi!</b> (№<b>#{{orderNumber}}</b>)\nKuryerimiz Sirdaryo tumani bo'ylab yo'lda.",
+  "order_completed_pickup_user": "🎂 <b>Buyurtmangiz (№#{{orderNumber}}) tayyor!</b>\nOlib ketishingiz mumkin hurmatli mijoz! Do'konimizdan kelib olib ketishingiz mumkin.",
+  "order_completed_delivery_user": "🎉 <b>Buyurtmangiz (№#{{orderNumber}}) yetkazib berildi!</b>\nYoqimli ishtaha! DINORA shirinliklarini tanlaganingiz uchun rahmat! ❤️",
+  "order_canceled_user": "❌ Buyurtmangiz (№<b>#{{orderNumber}}</b>) bekor qilindi.",
+  "custom_cake_intro": "✨ <b>Maxsus Tort Buyurtma qilish:</b>\n\nO'zingiz xohlagan tort rasmini yuboring va tavsif bering. Mini App orqali buni yanada qulay bajarishingiz mumkin!"
+}

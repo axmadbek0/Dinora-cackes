@@ -48,7 +48,7 @@ async function getCachedProducts(categoryId: string) {
   return cached?.data || [];
 }
 
-catalogHandler.hears('🍰 Katalogni ko\'rish', async (ctx) => {
+catalogHandler.hears(['🍰 Katalogni ko\'rish', '🍰 Каталогни кўриш', '🍰 Смотреть каталог'], async (ctx) => {
   const categories = await getCachedCategories();
   if (categories.length === 0) {
     return ctx.reply('Hozircha bo\'limlar mavjud emas.');

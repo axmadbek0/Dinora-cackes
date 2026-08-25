@@ -1,19 +1,70 @@
 import { Composer, InlineKeyboard } from 'grammy';
 import { BotContext } from '../context.js';
 import { getMainKeyboard, getPhoneRequestKeyboard } from '../keyboards/main.keyboard.js';
+import { getAdminDashboardInlineKeyboard, getAdminMainReplyKeyboard } from '../keyboards/admin.keyboard.js';
 import { prisma } from '../../config/database.js';
 import { SettingService } from '../../modules/settings/setting.service.js';
+import { env, isTelegramAdmin } from '../../config/env.js';
+import {
+  translate,
+  getLanguageInlineKeyboard,
+  resolveUserLanguage,
+  setUserLanguage,
+  SupportedLanguage,
+} from '../i18n.js';
 
 export const startHandler = new Composer<BotContext>();
 const settingService = new SettingService();
 
+function escapeHtml(str?: string): string {
+  if (!str) return '';
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+}
+
+// 1. Language selector command
+startHandler.command(['lang', 'language'], async (ctx) => {
+  const currentLang = await resolveUserLanguage(ctx.from?.id, ctx.from?.language_code);
+  const prompt = translate(currentLang, 'choose_lang_title');
+  return ctx.reply(prompt, {
+    reply_markup: getLanguageInlineKeyboard(),
+  });
+});
+
+// 2. Language selection callbacks
+startHandler.callbackQuery(/^set_lang_(uz|uz-Cyrl|ru)$/, async (ctx) => {
+  const selectedLang = ctx.match[1] as SupportedLanguage;
+  const telegramId = ctx.from?.id;
+
+  if (telegramId) {
+    await setUserLanguage(telegramId, selectedLang);
+  }
+
+  await ctx.answerCallbackQuery();
+  const confirmationMsg = translate(selectedLang, 'lang_changed');
+
+  await ctx.reply(confirmationMsg, {
+    parse_mode: 'HTML',
+    reply_markup: getMainKeyboard(selectedLang),
+  });
+});
+
+// 3. /start command
 startHandler.command('start', async (ctx) => {
   const telegramId = BigInt(ctx.from!.id);
+  const isAdmin = isTelegramAdmin(ctx.from?.id);
 
   try {
     let user = await prisma.user.findUnique({
       where: { telegramId },
-    });
+    }).catch(() => null);
+
+    const detectedLang: SupportedLanguage =
+      ctx.from?.language_code?.startsWith('ru')
+        ? 'ru'
+        : 'uz';
 
     if (!user) {
       user = await prisma.user.create({
@@ -22,35 +73,70 @@ startHandler.command('start', async (ctx) => {
           firstName: ctx.from?.first_name,
           lastName: ctx.from?.last_name,
           username: ctx.from?.username,
+          preferredLanguage: detectedLang,
+          role: isAdmin ? 'ADMIN' : 'USER',
         },
+      }).catch(() => null);
+    } else if (isAdmin && user.role !== 'ADMIN') {
+      await prisma.user.update({
+        where: { telegramId },
+        data: { role: 'ADMIN' },
+      }).catch(() => {});
+    }
+
+    const userLang: SupportedLanguage =
+      (user?.preferredLanguage as SupportedLanguage) || detectedLang;
+
+    // Admin Flow
+    if (isAdmin) {
+      ctx.session.step = 'IDLE';
+      const adminName = escapeHtml(ctx.from?.first_name || 'Admin');
+      const adminGreeting =
+        `👑 <b>Assalomu alaykum, ${adminName}! (Administrator)</b>\n\n` +
+        `🎂 <b>DINORA Shirinliklari</b> boshqaruv tizimiga xush kelibsiz!\n\n` +
+        `Sizga yangi buyurtmalar, to'lov cheklari va maxsus zakazlar to'g'ridan-to'g'ri shu yerga keladi.\n\n` +
+        `📲 Quyidagi tugma orqali to'liq <b>React Admin Panel (Mini App)</b>ni ochishingiz mumkin:`;
+
+      return ctx.reply(adminGreeting, {
+        parse_mode: 'HTML',
+        reply_markup: getAdminDashboardInlineKeyboard(),
+      }).then(() => {
+        return ctx.reply(`Boshqaruv menyusi faollashtirildi:`, {
+          reply_markup: getAdminMainReplyKeyboard(),
+        });
       });
     }
 
-    if (!user.phone) {
+    // Customer Flow: Request phone if not available
+    if (!user?.phone) {
       ctx.session.step = 'AWAITING_PHONE';
-      return ctx.reply(
-        `Assalomu alaykum! 🎂 **"Dinora Shirinliklari"** botiga xush kelibsiz.\n\nIltimos, xizmat ko'rsatishimiz uchun telefon raqamingizni ulashing:`,
-        {
-          parse_mode: 'Markdown',
-          reply_markup: getPhoneRequestKeyboard(),
-        }
-      );
+      const phonePrompt =
+        userLang === 'ru'
+          ? `Здравствуйте! 🎂 Добро пожаловать в бот <b>"Dinora Shirinliklari"</b>.\n\nПожалуйста, поделитесь номером телефона для продолжения:`
+          : userLang === 'uz-Cyrl'
+          ? `Ассалому алайкум! 🎂 <b>"Dinora Shirinliklari"</b> ботига хуш келибсиз.\n\nИлтимос, хизмат кўрсатишимиз учун телефон рақамингизни улашинг:`
+          : `Assalomu alaykum! 🎂 <b>"Dinora Shirinliklari"</b> botiga xush kelibsiz.\n\nIltimos, xizmat ko'rsatishimiz uchun telefon raqamingizni ulashing:`;
+
+      return ctx.reply(phonePrompt, {
+        parse_mode: 'HTML',
+        reply_markup: getPhoneRequestKeyboard(userLang),
+      });
     }
 
     ctx.session.step = 'IDLE';
-    return ctx.reply(
-      `Assalomu alaykum, ${ctx.from?.first_name}! 🍰\nDinora Shirinliklari botiga xush kelibsiz. Qanday shirinlik xohlaysiz?`,
-      {
-        reply_markup: getMainKeyboard(),
-      }
-    );
-  } catch (dbError) {
-    console.error('Database connection error in bot /start handler:', dbError);
+    const welcomeMsg = translate(userLang, 'welcome_message');
+    return ctx.reply(welcomeMsg, {
+      parse_mode: 'HTML',
+      reply_markup: getMainKeyboard(userLang),
+    });
+  } catch {
     ctx.session.step = 'IDLE';
+    const name = escapeHtml(ctx.from?.first_name || '');
     return ctx.reply(
-      `Assalomu alaykum, ${ctx.from?.first_name}! 🍰\n**Dinora Shirinliklari** botiga xush kelibsiz!`,
+      `Assalomu alaykum, ${name}! 🍰\n<b>Dinora Shirinliklari</b> botiga xush kelibsiz!`,
       {
-        reply_markup: getMainKeyboard(),
+        parse_mode: 'HTML',
+        reply_markup: getMainKeyboard('uz'),
       }
     );
   }
@@ -60,49 +146,55 @@ startHandler.on('message:contact', async (ctx) => {
   if (ctx.session.step === 'AWAITING_PHONE') {
     const phone = ctx.message.contact.phone_number;
     const telegramId = BigInt(ctx.from!.id);
+    const userLang = await resolveUserLanguage(ctx.from!.id, ctx.from?.language_code);
 
     try {
       await prisma.user.update({
         where: { telegramId },
         data: { phone },
       });
-    } catch (err) {
-      console.warn('Could not update phone in DB:', err);
+    } catch {
+      // safe fallback
     }
 
     ctx.session.step = 'IDLE';
-    return ctx.reply(`Rahmat! Telefon raqamingiz saqlandi. 😊`, {
-      reply_markup: getMainKeyboard(),
+    const thankYou =
+      userLang === 'ru'
+        ? 'Спасибо! Ваш номер телефона сохранен. 😊'
+        : userLang === 'uz-Cyrl'
+        ? 'Раҳмат! Телефон рақамингиз сақланди. 😊'
+        : 'Rahmat! Telefon raqamingiz saqlandi. 😊';
+
+    return ctx.reply(thankYou, {
+      reply_markup: getMainKeyboard(userLang),
     });
   }
 });
 
-startHandler.hears('📞 Aloqa & Ma\'lumot', async (ctx) => {
+startHandler.hears(['🌐 Tilni o\'zgartirish', '🌐 Тилни ўзгартириш', '🌐 Сменить язык'], async (ctx) => {
+  const currentLang = await resolveUserLanguage(ctx.from?.id, ctx.from?.language_code);
+  const prompt = translate(currentLang, 'choose_lang_title');
+  return ctx.reply(prompt, {
+    reply_markup: getLanguageInlineKeyboard(),
+  });
+});
+
+startHandler.hears(['📞 Aloqa & Ma\'lumot', '📞 Алоқа & Маълумот', '📞 Контакты и адрес'], async (ctx) => {
+  const currentLang = await resolveUserLanguage(ctx.from?.id, ctx.from?.language_code);
+  const contactMsg = translate(currentLang, 'contact_message');
+
   try {
     const settings: any = await settingService.getSettings();
-    const primaryPhone = settings.adminPhonePrimary || '+998 99 495 78 06';
-    const secondaryPhone = settings.adminPhoneSecondary || '+998 91 023 15 24';
-    const instagramUrl = settings.instagramUrl || 'https://www.instagram.com/dinora_shirinliklari/';
-    const instagramUsername = settings.instagramUsername || '@dinora_shirinliklari';
-    const workingDays = settings.workingDays || 'Dushanba - Yakshanba';
-    const hoursStart = settings.workingHoursStart || '09:00';
-    const hoursEnd = settings.workingHoursEnd || '21:00';
-    const deliveryText = settings.deliveryAddressText || "Sirdaryo tumani bo'ylab yetkazib berish";
+    const instagramUrl = settings?.instagramUrl || 'https://www.instagram.com/dinora_shirinliklari/';
+    const keyboard = new InlineKeyboard().url('📸 Instagram', instagramUrl);
 
-    const keyboard = new InlineKeyboard().url('📸 Instagram sahifamiz', instagramUrl);
-
-    const message = `📞 **DINORA Konditeriyasi - Aloqa va Ma'lumotlar**\n\n` +
-      `☎️ **Asosiy telefon:** ${primaryPhone}\n` +
-      `📞 **Qo'shimcha telefon:** ${secondaryPhone}\n` +
-      `📸 **Instagram:** ${instagramUsername}\n` +
-      `⏰ **Ish vaqti:** ${workingDays} (${hoursStart} — ${hoursEnd})\n` +
-      `📍 **Manzil va Yetkazish:** ${deliveryText}`;
-
-    return ctx.reply(message, {
-      parse_mode: 'Markdown',
+    return ctx.reply(contactMsg, {
+      parse_mode: 'HTML',
       reply_markup: keyboard,
     });
-  } catch (err) {
-    return ctx.reply(`📞 **DINORA Konditeriyasi**\n\n☎️ Telefon: +998 99 495 78 06\n📞 Qo'shimcha: +998 91 023 15 24\n📸 Instagram: @dinora_shirinliklari\n⏰ Ish vaqti: 09:00 — 21:00\n📍 Manzil: Sirdaryo tumani bo'ylab yetkazib berish`);
+  } catch {
+    return ctx.reply(contactMsg, {
+      parse_mode: 'HTML',
+    });
   }
 });

@@ -81,7 +81,7 @@ startHandler.command('start', async (ctx) => {
       await prisma.user.update({
         where: { telegramId },
         data: { role: 'ADMIN' },
-      }).catch(() => {});
+      }).catch(() => { });
     }
 
     const userLang: SupportedLanguage =
@@ -114,8 +114,8 @@ startHandler.command('start', async (ctx) => {
         userLang === 'ru'
           ? `Здравствуйте! 🎂 Добро пожаловать в бот <b>"Dinora Shirinliklari"</b>.\n\nПожалуйста, поделитесь номером телефона для продолжения:`
           : userLang === 'uz-Cyrl'
-          ? `Ассалому алайкум! 🎂 <b>"Dinora Shirinliklari"</b> ботига хуш келибсиз.\n\nИлтимос, хизмат кўрсатишимиз учун телефон рақамингизни улашинг:`
-          : `Assalomu alaykum! 🎂 <b>"Dinora Shirinliklari"</b> botiga xush kelibsiz.\n\nIltimos, xizmat ko'rsatishimiz uchun telefon raqamingizni ulashing:`;
+            ? `Ассалому алайкум! 🎂 <b>"Dinora Shirinliklari"</b> ботига хуш келибсиз.\n\nИлтимос, хизмат кўрсатишимиз учун телефон рақамингизни улашинг:`
+            : `Assalomu alaykum! 🎂 <b>"Dinora Shirinliklari"</b> botiga xush kelibsiz.\n\nIltimos, xizmat ko'rsatishimiz uchun telefon raqamingizni ulashing:`;
 
       return ctx.reply(phonePrompt, {
         parse_mode: 'HTML',
@@ -162,8 +162,8 @@ startHandler.on('message:contact', async (ctx) => {
       userLang === 'ru'
         ? 'Спасибо! Ваш номер телефона сохранен. 😊'
         : userLang === 'uz-Cyrl'
-        ? 'Раҳмат! Телефон рақамингиз сақланди. 😊'
-        : 'Rahmat! Telefon raqamingiz saqlandi. 😊';
+          ? 'Раҳмат! Телефон рақамингиз сақланди. 😊'
+          : 'Rahmat! Telefon raqamingiz saqlandi. 😊';
 
     return ctx.reply(thankYou, {
       reply_markup: getMainKeyboard(userLang),
@@ -224,8 +224,8 @@ async function handleOrderTracking(ctx: BotContext) {
         currentLang === 'ru'
           ? '📦 <b>У вас пока нет активных заказов.</b>\n\nВы можете выбрать и заказать вкусные десерты в нашем каталоге! 🎂'
           : currentLang === 'uz-Cyrl'
-          ? '📦 <b>Сизда ҳозирча фаол буюртмалар мавжуд эмас.</b>\n\nКаталогдан мазали ширинликларни танлаб, буюртма беришингиз мумкин! 🎂'
-          : '📦 <b>Sizda hozircha faol buyurtmalar mavjud emas.</b>\n\nKatalogni ko\'rib, mazali shirinliklarga buyurtma berishingiz mumkin! 🎂';
+            ? '📦 <b>Сизда ҳозирча фаол буюртмалар мавжуд эмас.</b>\n\nКаталогдан мазали ширинликларни танлаб, буюртма беришингиз мумкин! 🎂'
+            : '📦 <b>Sizda hozircha faol buyurtmalar mavjud emas.</b>\n\nKatalogni ko\'rib, mazali shirinliklarga buyurtma berishingiz mumkin! 🎂';
 
       const kb = new InlineKeyboard().text(
         currentLang === 'ru' ? '🍰 Открыть каталог' : '🍰 Katalogni ko\'rish',
@@ -312,7 +312,7 @@ async function handleOrderTracking(ctx: BotContext) {
 }
 
 startHandler.callbackQuery('refresh_orders_status', async (ctx) => {
-  await ctx.answerCallbackQuery({ text: 'Holatlar yangilandi!' }).catch(() => {});
+  await ctx.answerCallbackQuery({ text: 'Holatlar yangilandi!' }).catch(() => { });
   return handleOrderTracking(ctx);
 });
 

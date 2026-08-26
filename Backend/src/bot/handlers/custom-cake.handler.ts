@@ -20,14 +20,14 @@ customCakeHandler.hears(
     '🎂 Индивидуальный торт',
   ],
   async (ctx) => {
-  ctx.session.pendingCustomCake = {};
-  ctx.session.step = 'AWAITING_CUSTOM_PHOTO';
+    ctx.session.pendingCustomCake = {};
+    ctx.session.step = 'AWAITING_CUSTOM_PHOTO';
 
-  return ctx.reply(
-    `✨ **"O'zim xohlaganimdek" buyurtma berish**\n\nIltimos, siz xohlagan tort fotosuratini yuboring (yoki matnli yozuv qoldirish uchun rasm yuklamasdan davom eting):`,
-    { parse_mode: 'Markdown' }
-  );
-});
+    return ctx.reply(
+      `✨ **"O'zim xohlaganimdek" buyurtma berish**\n\nIltimos, siz xohlagan tort fotosuratini yuboring (yoki matnli yozuv qoldirish uchun rasm yuklamasdan davom eting):`,
+      { parse_mode: 'Markdown' }
+    );
+  });
 
 customCakeHandler.on('message:photo', async (ctx, next) => {
   if (ctx.session.step === 'AWAITING_CUSTOM_PHOTO') {

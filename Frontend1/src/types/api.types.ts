@@ -15,18 +15,28 @@ export type OrderStatus = (typeof OrderStatus)[keyof typeof OrderStatus];
 export interface ProductDto {
   id: string;
   name: string;
+  nameUz?: string | null;
+  nameUzCyrl?: string | null;
+  nameRu?: string | null;
   price: number;
-  description?: string;
+  description?: string | null;
+  descriptionUz?: string | null;
+  descriptionUzCyrl?: string | null;
+  descriptionRu?: string | null;
   category?: string | { id: string; name: string; slug?: string };
   categoryId?: string;
-  imageUrl?: string;
+  imageUrl?: string | null;
   weight?: string;
-  ingredients?: string;
+  ingredients?: string | null;        // Tarkibi va masalliqlar
+  storageConditions?: string | null;  // Saqlash sharoiti
+  deliveryTerms?: string | null;      // Yetkazib berish shartlari
   shelfLife?: string;
   isAvailable: boolean;
   portion?: string;
   weightGrams?: number;
   calories?: number;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface CreateOrderDto {

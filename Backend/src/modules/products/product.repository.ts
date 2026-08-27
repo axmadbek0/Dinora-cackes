@@ -102,6 +102,9 @@ export class ProductRepository {
           imageUrl: data.imageUrl || '',
           isAvailable: data.isAvailable ?? true,
           categoryId: categoryId || 'cat-1',
+          ingredients: data.ingredients || null,
+          storageConditions: data.storageConditions || null,
+          deliveryTerms: data.deliveryTerms || null,
         },
         include: { category: true },
       });
@@ -127,6 +130,9 @@ export class ProductRepository {
       if (data.imageUrl !== undefined) updateData.imageUrl = data.imageUrl;
       if (data.isAvailable !== undefined) updateData.isAvailable = data.isAvailable;
       if (data.categoryId !== undefined && data.categoryId !== 'cat-all') updateData.categoryId = data.categoryId;
+      if (data.ingredients !== undefined) updateData.ingredients = data.ingredients;
+      if (data.storageConditions !== undefined) updateData.storageConditions = data.storageConditions;
+      if (data.deliveryTerms !== undefined) updateData.deliveryTerms = data.deliveryTerms;
 
       return await prisma.product.update({
         where: { id },

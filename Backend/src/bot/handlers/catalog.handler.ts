@@ -1,99 +1,113 @@
 import { Composer } from 'grammy';
 import { BotContext } from '../context.js';
 import { ProductService } from '../../modules/products/product.service.js';
-import { getCategoriesInlineKeyboard, getProductInlineKeyboard } from '../keyboards/catalog.keyboard.js';
+import { getProductInlineKeyboard } from '../keyboards/catalog.keyboard.js';
 
 export const catalogHandler = new Composer<BotContext>();
 const productService = new ProductService();
 
 // Ultra-Fast In-Memory Cache (RAM)
-let categoriesCache: any[] | null = null;
-let lastCatCacheTime = 0;
-const productsCacheMap = new Map<string, { data: any[]; time: number }>();
+let allProductsCache: any[] | null = null;
+let lastProductsCacheTime = 0;
 const CACHE_TTL_MS = 60 * 1000; // 1 minute RAM cache TTL
 
-async function getCachedCategories() {
+async function getCachedAllProducts() {
   const now = Date.now();
-  if (categoriesCache && now - lastCatCacheTime < CACHE_TTL_MS) {
-    return categoriesCache;
+  if (allProductsCache && now - lastProductsCacheTime < CACHE_TTL_MS) {
+    return allProductsCache;
   }
   try {
-    const fresh = await productService.getCategories();
+    const fresh = await productService.getAllProducts({ isAvailable: true });
     if (fresh && fresh.length > 0) {
-      categoriesCache = fresh;
-      lastCatCacheTime = now;
-      return fresh;
-    }
-  } catch (e) {
-    console.warn('Categories DB fetch fallback to cache:', e);
-  }
-  return categoriesCache || [];
-}
-
-async function getCachedProducts(categoryId: string) {
-  const now = Date.now();
-  const cached = productsCacheMap.get(categoryId);
-  if (cached && now - cached.time < CACHE_TTL_MS) {
-    return cached.data;
-  }
-  try {
-    const fresh = await productService.getAllProducts({ categoryId, isAvailable: true });
-    if (fresh) {
-      productsCacheMap.set(categoryId, { data: fresh, time: now });
+      allProductsCache = fresh;
+      lastProductsCacheTime = now;
       return fresh;
     }
   } catch (e) {
     console.warn('Products DB fetch fallback to cache:', e);
   }
-  return cached?.data || [];
+  return allProductsCache || [];
 }
 
+// "Katalogni ko'rish" — barcha mahsulotlarni to'g'ridan-to'g'ri ko'rsatish
 catalogHandler.hears(['🍰 Katalogni ko\'rish', '🍰 Каталогни кўриш', '🍰 Смотреть каталог'], async (ctx) => {
-  const categories = await getCachedCategories();
-  if (categories.length === 0) {
-    return ctx.reply('Hozircha bo\'limlar mavjud emas.');
-  }
-
-  return ctx.reply('🍰 Iltimos, kerakli bo\'limni tanlang:', {
-    reply_markup: getCategoriesInlineKeyboard(categories),
-  });
-});
-
-catalogHandler.callbackQuery('back_to_categories', async (ctx) => {
-  ctx.answerCallbackQuery().catch(() => {});
-  const categories = await getCachedCategories();
-  return ctx.editMessageText('🍰 Iltimos, kerakli bo\'limni tanlang:', {
-    reply_markup: getCategoriesInlineKeyboard(categories),
-  });
-});
-
-catalogHandler.callbackQuery(/^cat_(.+)$/, async (ctx) => {
-  ctx.answerCallbackQuery().catch(() => {});
-  const categoryId = ctx.match[1];
-  const products = await getCachedProducts(categoryId);
+  const products = await getCachedAllProducts();
 
   if (products.length === 0) {
-    return ctx.reply('Ushbu bo\'limda hozircha mahsulotlar mavjud emas.');
+    return ctx.reply('Hozircha mahsulotlar mavjud emas. Tez orada yangidan to\'ldiriladi! 🎂');
   }
 
-  // Send all products in parallel for instant response
-  await Promise.all(
-    products.map((product: any) => {
-      const text = `📌 **${product.name}**\n\n📝 ${product.description || 'Tavsif berilmagan'}\n💰 **Narxi:** ${Number(product.price).toLocaleString('uz-UZ')} so'm`;
+  await ctx.reply(`🍰 <b>DINORA Shirinliklari Katalogi</b>\n\n📦 Jami: <b>${products.length} ta mahsulot</b>\n\nBarcha shirinliklarimiz quyida keltirilgan:`, {
+    parse_mode: 'HTML',
+  });
 
+  // Barcha mahsulotlarni ketma-ket yuborish
+  for (const product of products) {
+    const text =
+      `📌 <b>${product.name}</b>\n\n` +
+      `📝 ${product.description || 'Tavsif berilmagan'}\n` +
+      `💰 <b>Narxi:</b> ${Number(product.price).toLocaleString('uz-UZ')} so'm`;
+
+    try {
       if (product.imageUrl) {
-        return ctx.replyWithPhoto(product.imageUrl, {
+        await ctx.replyWithPhoto(product.imageUrl, {
           caption: text,
-          parse_mode: 'Markdown',
+          parse_mode: 'HTML',
           reply_markup: getProductInlineKeyboard(product.id),
         });
       } else {
-        return ctx.reply(text, {
-          parse_mode: 'Markdown',
+        await ctx.reply(text, {
+          parse_mode: 'HTML',
           reply_markup: getProductInlineKeyboard(product.id),
         });
       }
-    })
-  );
+    } catch {
+      // Rasm yuklashda xatolik bo'lsa, matn bilan yuborish
+      await ctx.reply(text, {
+        parse_mode: 'HTML',
+        reply_markup: getProductInlineKeyboard(product.id),
+      });
+    }
+  }
 });
 
+// "catalog_page_1" callback — buyurtma kuzatish va boshqa joylardan chaqiriladi
+catalogHandler.callbackQuery('catalog_page_1', async (ctx) => {
+  ctx.answerCallbackQuery().catch(() => {});
+  const products = await getCachedAllProducts();
+
+  if (products.length === 0) {
+    return ctx.reply('Hozircha mahsulotlar mavjud emas. 🎂');
+  }
+
+  await ctx.reply(`🍰 <b>DINORA Shirinliklari Katalogi</b>\n\n📦 Jami: <b>${products.length} ta mahsulot</b>`, {
+    parse_mode: 'HTML',
+  });
+
+  for (const product of products) {
+    const text =
+      `📌 <b>${product.name}</b>\n\n` +
+      `📝 ${product.description || 'Tavsif berilmagan'}\n` +
+      `💰 <b>Narxi:</b> ${Number(product.price).toLocaleString('uz-UZ')} so'm`;
+
+    try {
+      if (product.imageUrl) {
+        await ctx.replyWithPhoto(product.imageUrl, {
+          caption: text,
+          parse_mode: 'HTML',
+          reply_markup: getProductInlineKeyboard(product.id),
+        });
+      } else {
+        await ctx.reply(text, {
+          parse_mode: 'HTML',
+          reply_markup: getProductInlineKeyboard(product.id),
+        });
+      }
+    } catch {
+      await ctx.reply(text, {
+        parse_mode: 'HTML',
+        reply_markup: getProductInlineKeyboard(product.id),
+      });
+    }
+  }
+});

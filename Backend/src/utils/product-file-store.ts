@@ -62,6 +62,9 @@ export class ProductFileStore {
       isAvailable: data.isAvailable ?? true,
       categoryId: cat.id,
       category: cat,
+      ingredients: data.ingredients || null,
+      storageConditions: data.storageConditions || null,
+      deliveryTerms: data.deliveryTerms || null,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };

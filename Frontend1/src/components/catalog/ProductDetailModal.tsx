@@ -354,7 +354,7 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
                           {t('product.ingredients')}:
                         </h4>
                         <p className="text-xs sm:text-sm text-[#6B5B52] leading-relaxed bg-[#FAF6F0] p-3.5 rounded-2xl border border-[#2B1810]/5">
-                          {product.ingredients || "Belgiya shokoladi (Cacao Barry), 82.5% tabiiy sariyog', yangi sut krem-pishlog'i, rezavor meva konfilari va tabiiy vanil ekstrakti."}
+                          {product.ingredients || "Ma'lumot kiritilmagan"}
                         </p>
                         <div className="flex items-center space-x-2 text-[11px] text-[#CBB279] font-bold">
                           <ShieldCheck className="w-4 h-4 text-emerald-600" />
@@ -368,16 +368,9 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
                         <h4 className="text-xs font-extrabold text-[#2B1810] uppercase tracking-wider">
                           {t('product.storage')}:
                         </h4>
-                        <ul className="space-y-2 text-xs sm:text-sm text-[#6B5B52]">
-                          <li className="flex items-center space-x-2 bg-[#FAF6F0] p-3 rounded-xl border border-[#2B1810]/5">
-                            <span className="w-2 h-2 rounded-full bg-[#D65B78]" />
-                            <span>Muzlatgichda <strong>+2°C dan +6°C gacha</strong> saqlansin.</span>
-                          </li>
-                          <li className="flex items-center space-x-2 bg-[#FAF6F0] p-3 rounded-xl border border-[#2B1810]/5">
-                            <span className="w-2 h-2 rounded-full bg-[#CBB279]" />
-                            <span>Yaroqlilik muddati: <strong>48 soat</strong>.</span>
-                          </li>
-                        </ul>
+                        <p className="text-xs sm:text-sm text-[#6B5B52] leading-relaxed bg-[#FAF6F0] p-3.5 rounded-2xl border border-[#2B1810]/5 whitespace-pre-line">
+                          {product.storageConditions || "Ma'lumot kiritilmagan"}
+                        </p>
                       </div>
                     )}
 
@@ -386,8 +379,8 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
                         <h4 className="text-xs font-extrabold text-[#2B1810] uppercase tracking-wider">
                           {t('product.delivery_terms')}:
                         </h4>
-                        <p className="text-xs sm:text-sm text-[#6B5B52] leading-relaxed bg-[#FAF6F0] p-3.5 rounded-2xl border border-[#2B1810]/5">
-                          📍 <strong>Sirdaryo tumani</strong> bo'ylab tezkor yetkazib berish xizmati yo'lga qo'yilgan. Mahsulotlar maxsus sovutgichli konteynerlarda yetkaziladi.
+                        <p className="text-xs sm:text-sm text-[#6B5B52] leading-relaxed bg-[#FAF6F0] p-3.5 rounded-2xl border border-[#2B1810]/5 whitespace-pre-line">
+                          {product.deliveryTerms || "📍 Sirdaryo tumani bo'ylab tezkor yetkazib berish xizmati yo'lga qo'yilgan. Mahsulotlar maxsus sovutgichli konteynerlarda yetkaziladi."}
                         </p>
                       </div>
                     )}

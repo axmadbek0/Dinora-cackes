@@ -4,7 +4,7 @@ import { Modal } from '../../../components/ui/Modal';
 import { Input } from '../../../components/ui/Input';
 import { Button } from '../../../components/ui/Button';
 import { Product, Category, CreateProductDTO } from '../../../types/product.types';
-import { Image, DollarSign, Tag, FileText, Upload, Link, X, CheckCircle, Globe } from 'lucide-react';
+import { Image, DollarSign, Tag, FileText, Upload, Link, X, CheckCircle, Globe, Package, Thermometer, Truck } from 'lucide-react';
 import { apiClient } from '../../../api/axios.client';
 import { getImageUrl } from '../../../utils/imageUrl';
 
@@ -46,6 +46,11 @@ export const ProductModal: React.FC<ProductModalProps> = ({
   const [isAvailable, setIsAvailable] = useState(true);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
+  // Product extra fields
+  const [ingredients, setIngredients] = useState('');
+  const [storageConditions, setStorageConditions] = useState('');
+  const [deliveryTerms, setDeliveryTerms] = useState('');
+
   // Image upload state
   const [imageMode, setImageMode] = useState<'url' | 'file'>('url');
   const [imagePreview, setImagePreview] = useState<string | null>(null);
@@ -66,6 +71,10 @@ export const ProductModal: React.FC<ProductModalProps> = ({
       setDescriptionUzCyrl(product.descriptionUzCyrl || '');
       setDescriptionRu(product.descriptionRu || '');
 
+      setIngredients((product as any).ingredients || '');
+      setStorageConditions((product as any).storageConditions || '');
+      setDeliveryTerms((product as any).deliveryTerms || '');
+
       setPrice(String(product.price));
       setImageUrl(product.imageUrl || '');
       setImagePreview(product.imageUrl || null);
@@ -79,6 +88,9 @@ export const ProductModal: React.FC<ProductModalProps> = ({
       setDescriptionUz('');
       setDescriptionUzCyrl('');
       setDescriptionRu('');
+      setIngredients('');
+      setStorageConditions('');
+      setDeliveryTerms('');
       setPrice('');
       setImageUrl('');
       setImagePreview(null);
@@ -174,7 +186,10 @@ export const ProductModal: React.FC<ProductModalProps> = ({
       imageUrl: imageUrl.trim() || undefined,
       categoryId,
       isAvailable,
-    });
+      ingredients: ingredients.trim() || undefined,
+      storageConditions: storageConditions.trim() || undefined,
+      deliveryTerms: deliveryTerms.trim() || undefined,
+    } as any);
   };
 
   const isEdit = !!product;
@@ -502,6 +517,61 @@ export const ProductModal: React.FC<ProductModalProps> = ({
               {isAvailable ? 'Sotuvda mavjud' : 'Tugagan'}
             </span>
           </label>
+        </div>
+
+        {/* === YANGI: Ingredients, Storage, Delivery === */}
+        <div className="space-y-4 p-3.5 bg-white rounded-2xl border border-dinora-border shadow-xs">
+          <div className="flex items-center gap-1.5 mb-1">
+            <Package className="w-3.5 h-3.5 text-dinora-pink" />
+            <span className="text-[11px] font-bold text-dinora-chocolate uppercase tracking-wider">
+              Qo'shimcha ma'lumotlar
+            </span>
+          </div>
+
+          {/* Ingredients */}
+          <div>
+            <label className="block text-xs font-semibold text-dinora-chocolate uppercase tracking-wider mb-1.5 flex items-center gap-1">
+              <Package className="w-3.5 h-3.5 text-dinora-gold" />
+              <span>Tarkibi va Masalliqlar</span>
+            </label>
+            <textarea
+              rows={3}
+              value={ingredients}
+              onChange={(e) => setIngredients(e.target.value)}
+              placeholder="Masalan: Un, shakar, tuxum, sariyog', vanillin..."
+              className="w-full rounded-xl border border-dinora-border bg-white p-3 text-sm text-dinora-chocolate focus:border-dinora-gold focus:outline-none focus:ring-2 focus:ring-dinora-gold/30 resize-none"
+            />
+          </div>
+
+          {/* Storage Conditions */}
+          <div>
+            <label className="block text-xs font-semibold text-dinora-chocolate uppercase tracking-wider mb-1.5 flex items-center gap-1">
+              <Thermometer className="w-3.5 h-3.5 text-dinora-gold" />
+              <span>Saqlash Sharoiti</span>
+            </label>
+            <textarea
+              rows={3}
+              value={storageConditions}
+              onChange={(e) => setStorageConditions(e.target.value)}
+              placeholder="Masalan: Muzlatgichda +2°C dan +6°C gacha, 48 soat saqlash muddati..."
+              className="w-full rounded-xl border border-dinora-border bg-white p-3 text-sm text-dinora-chocolate focus:border-dinora-gold focus:outline-none focus:ring-2 focus:ring-dinora-gold/30 resize-none"
+            />
+          </div>
+
+          {/* Delivery Terms */}
+          <div>
+            <label className="block text-xs font-semibold text-dinora-chocolate uppercase tracking-wider mb-1.5 flex items-center gap-1">
+              <Truck className="w-3.5 h-3.5 text-dinora-gold" />
+              <span>Yetkazib Berish Shartlari</span>
+            </label>
+            <textarea
+              rows={3}
+              value={deliveryTerms}
+              onChange={(e) => setDeliveryTerms(e.target.value)}
+              placeholder="Masalan: Sirdaryo tumani bo'ylab tezkor yetkazib berish..."
+              className="w-full rounded-xl border border-dinora-border bg-white p-3 text-sm text-dinora-chocolate focus:border-dinora-gold focus:outline-none focus:ring-2 focus:ring-dinora-gold/30 resize-none"
+            />
+          </div>
         </div>
 
         {/* Modal Buttons */}

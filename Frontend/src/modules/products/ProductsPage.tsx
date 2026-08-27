@@ -1,13 +1,11 @@
 import React, { useState } from 'react';
 import {
   useProducts,
-  useCategories,
   useCreateProduct,
   useUpdateProduct,
   useDeleteProduct,
 } from './hooks/useProducts';
 import { ProductCard } from './components/ProductCard';
-import { CategoryFilter } from './components/CategoryFilter';
 import { ProductModal } from './components/ProductModal';
 import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
@@ -15,17 +13,15 @@ import { Product, CreateProductDTO } from '../../types/product.types';
 import { Plus, Search, Loader2, PackageX } from 'lucide-react';
 
 export const ProductsPage: React.FC = () => {
-  const [selectedCategoryId, setSelectedCategoryId] = useState<string | undefined>(undefined);
   const [search, setSearch] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
 
+  // Barcha mahsulotlarni kategoriya filtersiz yuklash
   const { data: products = [], isLoading } = useProducts({
-    categoryId: selectedCategoryId,
     search: search || undefined,
   });
 
-  const { data: categories = [] } = useCategories();
   const createMutation = useCreateProduct();
   const updateMutation = useUpdateProduct();
   const deleteMutation = useDeleteProduct();
@@ -63,7 +59,7 @@ export const ProductsPage: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      {/* Top Bar: Search, Category Filter & Add Product Button */}
+      {/* Top Bar: Search & Add Product Button */}
       <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4 bg-white p-4 rounded-2xl border border-dinora-border shadow-dinora">
         <div className="flex-1 max-w-md">
           <Input
@@ -81,14 +77,7 @@ export const ProductsPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Category Filter Pills */}
-      <CategoryFilter
-        categories={categories}
-        selectedCategoryId={selectedCategoryId}
-        onSelectCategory={setSelectedCategoryId}
-      />
-
-      {/* Product Catalog Grid */}
+      {/* Barcha mahsulotlar katalogi (filtrsiz) */}
       {isLoading ? (
         <div className="flex flex-col items-center justify-center min-h-[300px]">
           <Loader2 className="w-10 h-10 text-dinora-gold animate-spin mb-3" />
@@ -121,7 +110,7 @@ export const ProductsPage: React.FC = () => {
         onClose={() => setIsModalOpen(false)}
         onSubmit={handleSubmit}
         product={editingProduct}
-        categories={categories}
+        categories={[]}
         isLoading={createMutation.isPending || updateMutation.isPending}
       />
     </div>

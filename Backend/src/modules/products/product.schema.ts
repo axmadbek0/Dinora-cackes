@@ -14,6 +14,9 @@ export const createProductSchema = z.object({
     categoryId: z.string().min(1, 'Category ID is required'),
     imageUrl: z.string().optional().nullable(),
     isAvailable: z.boolean().optional().default(true),
+    ingredients: z.string().optional().nullable(),
+    storageConditions: z.string().optional().nullable(),
+    deliveryTerms: z.string().optional().nullable(),
   }),
 });
 
@@ -34,6 +37,9 @@ export const updateProductSchema = z.object({
     categoryId: z.string().optional(),
     imageUrl: z.string().optional().nullable(),
     isAvailable: z.boolean().optional(),
+    ingredients: z.string().optional().nullable(),
+    storageConditions: z.string().optional().nullable(),
+    deliveryTerms: z.string().optional().nullable(),
   }),
 });
 

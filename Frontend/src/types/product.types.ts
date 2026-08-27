@@ -26,6 +26,9 @@ export interface Product {
   isAvailable: boolean;
   categoryId: string;
   category?: Category;
+  ingredients?: string | null;
+  storageConditions?: string | null;
+  deliveryTerms?: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -43,6 +46,9 @@ export interface CreateProductDTO {
   imageUrl?: string;
   categoryId: string;
   isAvailable?: boolean;
+  ingredients?: string;
+  storageConditions?: string;
+  deliveryTerms?: string;
 }
 
 export interface UpdateProductDTO {
@@ -58,6 +64,9 @@ export interface UpdateProductDTO {
   imageUrl?: string;
   categoryId?: string;
   isAvailable?: boolean;
+  ingredients?: string;
+  storageConditions?: string;
+  deliveryTerms?: string;
 }
 
 export interface ProductFilterParams {

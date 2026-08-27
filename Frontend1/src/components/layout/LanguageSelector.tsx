@@ -24,7 +24,7 @@ export const LanguageSelector: React.FC = () => {
 
   const handleSelectLanguage = (code: AppLanguage) => {
     i18n.changeLanguage(code);
-    localStorage.setItem('dinora_admin_lang', code);
+    localStorage.setItem('dinora_lang', code);
     setIsOpen(false);
   };
 

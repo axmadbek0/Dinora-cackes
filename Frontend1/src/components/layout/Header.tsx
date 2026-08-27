@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import { ShoppingBag, Cake, Clock, MapPin, Menu, X, Award, Phone, Compass, ChevronRight } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { useCart } from '../../context/CartContext';
 import { useTelegram } from '../../context/TelegramContext';
 import { formatUZS } from '../../utils/formatters';
 import { motion, AnimatePresence } from 'framer-motion';
+import { LanguageSelector } from './LanguageSelector';
 
 interface HeaderProps {
   onOpenCustomCake: () => void;
@@ -16,6 +18,7 @@ export const Header: React.FC<HeaderProps> = ({
   onOpenOrdersTrack,
   onNavigateSection,
 }) => {
+  const { t } = useTranslation();
   const { totalCount, totalAmount, toggleCart } = useCart();
   const { user, isTelegram } = useTelegram();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -56,45 +59,48 @@ export const Header: React.FC<HeaderProps> = ({
               </div>
             </div>
 
-            {/* Desktop Navigation Links (Visible on xl: >= 1280px for iPad Pro & Large Screen Compatibility) */}
+            {/* Desktop Navigation Links (Visible on xl: >= 1280px) */}
             <nav className="hidden xl:flex items-center space-x-6 xl:space-x-8 text-xs xl:text-sm font-semibold text-[#6B5B52]">
               <button
                 onClick={() => onNavigateSection('catalog')}
                 className="hover:text-[#D65B78] transition-colors py-1 border-b-2 border-transparent hover:border-[#D65B78]"
               >
-                Katalog
+                {t('nav.catalog')}
               </button>
               <button
                 onClick={onOpenCustomCake}
                 className="hover:text-[#D65B78] transition-colors py-1 flex items-center space-x-1.5 text-[#2B1810] font-bold"
               >
                 <Cake className="w-4 h-4 text-[#D65B78]" />
-                <span>✨ O'zim xohlaganimdek</span>
+                <span>{t('nav.custom_cake')}</span>
               </button>
               <button
                 onClick={() => onNavigateSection('location')}
                 className="hover:text-[#D65B78] transition-colors py-1 flex items-center space-x-1 font-bold text-[#D65B78]"
               >
                 <MapPin className="w-4 h-4 text-[#D65B78]" />
-                <span>📍 Manzilimiz</span>
+                <span>{t('nav.location')}</span>
               </button>
               <button
                 onClick={() => onNavigateSection('certificate')}
                 className="hover:text-[#D65B78] transition-colors py-1"
               >
-                Konditer Sertifikati
+                {t('nav.certificate')}
               </button>
               <button
                 onClick={() => onNavigateSection('contact')}
                 className="hover:text-[#D65B78] transition-colors py-1"
               >
-                Bog'lanish
+                {t('nav.contact')}
               </button>
             </nav>
 
             {/* Right Actions Group */}
             <div className="flex items-center space-x-2 sm:space-x-3 shrink-0">
               
+              {/* Language Selector */}
+              <LanguageSelector />
+
               {/* Telegram User Greeting Badge */}
               {isTelegram && user && (
                 <div className="hidden 2xl:flex items-center space-x-2 bg-[#F8E7EA] px-3 py-1.5 rounded-full border border-[#D65B78]/20">
@@ -108,7 +114,7 @@ export const Header: React.FC<HeaderProps> = ({
               {/* Custom Cake Button (Visible on Tablets & iPad Pro) */}
               <button
                 onClick={onOpenCustomCake}
-                title="O'zim xohlaganimdek tort"
+                title={t('nav.custom_cake')}
                 className="hidden sm:flex xl:hidden items-center space-x-1.5 px-3 py-2 rounded-2xl bg-[#F8E7EA] text-[#D65B78] border border-[#D65B78]/30 active:scale-95 transition-transform shrink-0 shadow-sm text-xs font-bold"
               >
                 <Cake className="w-4 h-4 text-[#D65B78]" />
@@ -118,7 +124,7 @@ export const Header: React.FC<HeaderProps> = ({
               {/* Order Tracking Button */}
               <button
                 onClick={onOpenOrdersTrack}
-                title="Buyurtmalarni kuzatish"
+                title={t('nav.track')}
                 className="w-10 h-10 sm:h-11 sm:w-11 rounded-2xl bg-white border border-[#2B1810]/10 text-[#6B5B52] hover:text-[#2B1810] hover:bg-[#F8E7EA] active:scale-95 transition-all shadow-sm shrink-0 flex items-center justify-center"
               >
                 <Clock className="w-5 h-5" />
@@ -127,14 +133,14 @@ export const Header: React.FC<HeaderProps> = ({
               {/* Cart Trigger Button */}
               <button
                 onClick={toggleCart}
-                title="Savatcha"
+                title={t('nav.cart')}
                 className="relative w-10 h-10 sm:h-11 sm:w-auto sm:px-4 rounded-2xl bg-[#2B1810] hover:bg-[#3D2318] text-[#FAF6F0] shadow-md hover:shadow-lg active:scale-95 transition-all border border-[#CBB279]/40 shrink-0 flex items-center justify-center space-x-2"
               >
                 <ShoppingBag className="w-5 h-5 text-[#D65B78] shrink-0" />
                 
                 <div className="hidden sm:flex flex-col text-left leading-tight">
                   <span className="text-[10px] text-[#CBB279] font-bold uppercase tracking-wider">
-                    Savat
+                    {t('nav.cart')}
                   </span>
                   <span className="text-xs font-extrabold">
                     {formatUZS(totalAmount)}
@@ -148,11 +154,11 @@ export const Header: React.FC<HeaderProps> = ({
                 )}
               </button>
 
-              {/* Mobile / iPad Mini / iPad Pro Drawer Menu Hamburger Button */}
+              {/* Mobile / iPad Hamburger Menu Button */}
               <button
                 onClick={() => setIsMobileMenuOpen(true)}
                 className="xl:hidden w-10 h-10 rounded-2xl bg-[#FAF6F0] border border-[#2B1810]/15 text-[#2B1810] flex items-center justify-center active:scale-95 transition-transform"
-                aria-label="Menyu"
+                aria-label={t('nav.menu')}
               >
                 <Menu className="w-5 h-5" />
               </button>
@@ -185,7 +191,7 @@ export const Header: React.FC<HeaderProps> = ({
               className="relative ml-auto w-80 max-w-[85vw] bg-[#FAF6F0] h-full shadow-2xl z-10 flex flex-col justify-between p-6 border-l border-[#2B1810]/15 overflow-y-auto"
             >
               <div>
-                {/* Header */}
+                {/* Drawer Header */}
                 <div className="flex items-center justify-between border-b border-[#2B1810]/10 pb-4 mb-6">
                   <div className="flex items-center space-x-2">
                     <img
@@ -207,6 +213,11 @@ export const Header: React.FC<HeaderProps> = ({
                   </button>
                 </div>
 
+                {/* Language Selector in Drawer */}
+                <div className="mb-4">
+                  <LanguageSelector />
+                </div>
+
                 {/* Nav Links List */}
                 <div className="space-y-3">
                   <button
@@ -215,7 +226,7 @@ export const Header: React.FC<HeaderProps> = ({
                   >
                     <div className="flex items-center space-x-3">
                       <Compass className="w-5 h-5 text-[#D65B78]" />
-                      <span>Shirinliklar Katalogi</span>
+                      <span>{t('nav.catalog')}</span>
                     </div>
                     <ChevronRight className="w-4 h-4 text-gray-400" />
                   </button>
@@ -226,7 +237,7 @@ export const Header: React.FC<HeaderProps> = ({
                   >
                     <div className="flex items-center space-x-3">
                       <Cake className="w-5 h-5 text-[#CBB279]" />
-                      <span>✨ Custom Cake Builder</span>
+                      <span>{t('nav.custom_cake')}</span>
                     </div>
                     <ChevronRight className="w-4 h-4 text-[#CBB279]" />
                   </button>
@@ -237,7 +248,7 @@ export const Header: React.FC<HeaderProps> = ({
                   >
                     <div className="flex items-center space-x-3">
                       <MapPin className="w-5 h-5 text-[#D65B78]" />
-                      <span>📍 Sirdaryo Tumani Lokatsiyasi</span>
+                      <span>{t('nav.location')}</span>
                     </div>
                     <ChevronRight className="w-4 h-4 text-gray-400" />
                   </button>
@@ -248,7 +259,7 @@ export const Header: React.FC<HeaderProps> = ({
                   >
                     <div className="flex items-center space-x-3">
                       <Award className="w-5 h-5 text-[#CBB279]" />
-                      <span>Konditer Sertifikati</span>
+                      <span>{t('nav.certificate')}</span>
                     </div>
                     <ChevronRight className="w-4 h-4 text-gray-400" />
                   </button>
@@ -259,7 +270,7 @@ export const Header: React.FC<HeaderProps> = ({
                   >
                     <div className="flex items-center space-x-3">
                       <Phone className="w-5 h-5 text-emerald-600" />
-                      <span>Bog'lanish va Ijtimoiy Tarmoqlar</span>
+                      <span>{t('nav.contact')}</span>
                     </div>
                     <ChevronRight className="w-4 h-4 text-gray-400" />
                   </button>
@@ -270,7 +281,7 @@ export const Header: React.FC<HeaderProps> = ({
                   >
                     <div className="flex items-center space-x-3">
                       <Clock className="w-5 h-5 text-[#D65B78]" />
-                      <span>Buyurtmalarni Jonli Kuzatish</span>
+                      <span>{t('nav.track')}</span>
                     </div>
                     <ChevronRight className="w-4 h-4 text-[#D65B78]" />
                   </button>
@@ -291,3 +302,5 @@ export const Header: React.FC<HeaderProps> = ({
     </>
   );
 };
+
+

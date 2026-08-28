@@ -48,7 +48,7 @@ async function notifyAdminsNewOrder(order: any) {
               productPhotoPath = candidate2;
               break;
             } else {
-              const base = process.env.API_BASE_URL || 'http://localhost:5000';
+              const base = process.env.API_BASE_URL || env.FRONTEND_WEB_URL?.replace(/\/(adminpanel|app)\/?.*$/, '') || 'https://dinorashirinliklari.uz';
               productPhotoUrl = `${base}/${clean}`;
               break;
             }

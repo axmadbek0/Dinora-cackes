@@ -54,7 +54,7 @@ export const Header: React.FC<HeaderProps> = ({
                   </span>
                 </div>
                 <p className="font-serif italic text-[10px] sm:text-xs text-[#CBB279] tracking-wide truncate max-w-[120px] sm:max-w-none mt-0.5">
-                  Ta'm san'at'a aylansa...
+                  Ta'm san'atga aylansa...
                 </p>
               </div>
             </div>

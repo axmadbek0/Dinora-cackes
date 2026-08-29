@@ -19,8 +19,9 @@ export const useCustomCakes = () => {
         return MOCK_CUSTOM_CAKES;
       }
     },
-    staleTime: 1000 * 30,
-    refetchInterval: 20000,
+    staleTime: 1000 * 2,
+    refetchInterval: 5000,
+    refetchOnWindowFocus: true,
     enabled: !!localStorage.getItem('dinora_admin_token'),
   });
 };

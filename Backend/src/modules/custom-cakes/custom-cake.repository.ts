@@ -105,19 +105,30 @@ export class CustomCakeRepository {
   }
 
   async findById(id: string) {
+    let dbCake = null;
     try {
-      const cake = await prisma.customCakeRequest.findUnique({
+      dbCake = await prisma.customCakeRequest.findUnique({
         where: { id },
         include: { user: true },
       });
-      if (cake) return cake;
-      return CustomCakeFileStore.findById(id);
-    } catch (err) {
-      return CustomCakeFileStore.findById(id);
-    }
+    } catch (err) {}
+
+    const fileCake = CustomCakeFileStore.findById(id);
+    if (!dbCake && !fileCake) return null;
+    if (!dbCake) return fileCake;
+    if (!fileCake) return dbCake;
+
+    return {
+      ...fileCake,
+      ...dbCake,
+      customDetails: fileCake.customDetails || (dbCake as any).customDetails,
+      distanceKm: fileCake.distanceKm !== undefined ? fileCake.distanceKm : (dbCake as any).distanceKm,
+      deliveryFee: fileCake.deliveryFee !== undefined ? fileCake.deliveryFee : (dbCake as any).deliveryFee,
+    };
   }
 
   async findAll(filter: { telegramId?: number; status?: CustomCakeStatus; query?: string; phone?: string }) {
+    let list: any[] = [];
     try {
       const where: any = {};
       if (filter.telegramId) {
@@ -135,16 +146,38 @@ export class CustomCakeRepository {
         ];
       }
 
-      const list = await prisma.customCakeRequest.findMany({
+      list = await prisma.customCakeRequest.findMany({
         where,
         include: { user: true },
         orderBy: { createdAt: 'desc' },
       });
-      if (list && list.length > 0) return list;
-      return CustomCakeFileStore.findRequests(filter as any);
-    } catch (err) {
-      return CustomCakeFileStore.findRequests(filter as any);
+    } catch (err) {}
+
+    const fileList = CustomCakeFileStore.findRequests(filter as any);
+    const combinedMap = new Map<string, any>();
+
+    for (const item of list) {
+      combinedMap.set(item.id, item);
     }
+
+    for (const fItem of fileList) {
+      if (!combinedMap.has(fItem.id)) {
+        combinedMap.set(fItem.id, fItem);
+      } else {
+        const existing = combinedMap.get(fItem.id);
+        combinedMap.set(fItem.id, {
+          ...existing,
+          customDetails: existing.customDetails || fItem.customDetails,
+          distanceKm: existing.distanceKm !== undefined ? existing.distanceKm : fItem.distanceKm,
+          deliveryFee: existing.deliveryFee !== undefined ? existing.deliveryFee : fItem.deliveryFee,
+          referenceImages: existing.referenceImages || fItem.referenceImages,
+        });
+      }
+    }
+
+    return Array.from(combinedMap.values()).sort(
+      (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    );
   }
 
   async updateStatus(id: string, data: UpdateCustomCakeStatusDTO) {

@@ -43,16 +43,18 @@ export class CustomCakeFileStore {
   static createRequest(data: any): any {
     const requests = this.getRequests();
     const requestNumber = data.requestNumber || this.getNextRequestNumber();
+    const telegramId = data.telegramId || data.user?.telegramId || (data.userId && data.userId.startsWith('usr-') ? data.userId.replace('usr-', '') : null);
     const newRequest = {
       id: data.id || `cust-${Date.now()}-${Math.floor(100 + Math.random() * 900)}`,
       requestNumber,
-      userId: data.userId || `usr-${Date.now()}`,
+      userId: data.userId || (telegramId ? `usr-${telegramId}` : `usr-${Date.now()}`),
+      telegramId: telegramId ? Number(telegramId) : null,
       referenceImageUrl: data.referenceImageUrl || (data.referenceImages?.[0] || null),
       referenceImages: data.referenceImages || (data.referenceImageUrl ? [data.referenceImageUrl] : []),
       description: data.description || '',
       customDetails: data.customDetails || null,
-      phone: data.phone || null,
-      customerName: data.customerName || data.user?.firstName || 'Mijoz',
+      phone: data.phone || data.user?.phone || null,
+      customerName: data.customerName || data.firstName || data.user?.firstName || 'Mijoz',
       deliveryType: data.deliveryType || 'DELIVERY',
       deliveryRegion: data.deliveryRegion || 'Sirdaryo tumani',
       addressDetails: data.addressDetails || null,
@@ -67,11 +69,13 @@ export class CustomCakeFileStore {
       adminNotes: data.adminNotes || null,
       createdAt: data.createdAt || new Date().toISOString(),
       updatedAt: new Date().toISOString(),
-      user: data.user || {
-        id: data.userId || `usr-${Date.now()}`,
-        firstName: data.customerName || 'Mijoz',
-        phone: data.phone || '',
-        telegramId: data.telegramId || null,
+      user: {
+        id: data.userId || (telegramId ? `usr-${telegramId}` : `usr-${Date.now()}`),
+        firstName: data.customerName || data.firstName || data.user?.firstName || 'Mijoz',
+        lastName: data.lastName || data.user?.lastName || '',
+        username: data.username || data.user?.username || '',
+        phone: data.phone || data.user?.phone || '',
+        telegramId: telegramId ? Number(telegramId) : null,
       },
     };
 
@@ -131,9 +135,18 @@ export class CustomCakeFileStore {
     const index = requests.findIndex((r) => r.id === id || String(r.requestNumber) === id);
 
     if (index !== -1) {
+      const existing = requests[index];
+      const mergedUser = {
+        ...existing.user,
+        ...(updateData.user || {}),
+        telegramId: existing.user?.telegramId || existing.telegramId || updateData.user?.telegramId,
+      };
+
       requests[index] = {
-        ...requests[index],
+        ...existing,
         ...updateData,
+        user: mergedUser,
+        telegramId: mergedUser.telegramId || existing.telegramId,
         updatedAt: new Date().toISOString(),
       };
       this.saveRequests(requests);

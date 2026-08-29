@@ -60,12 +60,12 @@ import { OnlineTracker } from '../utils/online-tracker.js';
 apiRouter.post('/analytics/ping', asyncHandler(async (req, res) => {
   const sessionId = String(req.body?.sessionId || req.ip || 'anon');
   const count = OnlineTracker.ping(sessionId);
-  res.json({ success: true, count });
+  res.json({ success: true, count, data: { onlineCount: count } });
 }));
 
 apiRouter.get('/analytics/live-visitors', asyncHandler(async (_req, res) => {
   const count = OnlineTracker.getCount();
-  res.json({ success: true, count });
+  res.json({ success: true, count, data: { onlineCount: count } });
 }));
 
 // --- Analytics API (Protected: Admin Only) ---

@@ -146,7 +146,7 @@ export const DeliveryPricingSection: React.FC = () => {
 
               <div className="pt-2">
                 <span className="text-2xl sm:text-3xl font-extrabold text-[#D65B78] font-serif block">
-                  15,000 UZS <span className="text-xs font-bold text-[#6B5B52]">/ km</span>
+                  2,500 UZS <span className="text-xs font-bold text-[#6B5B52]">/ km</span>
                 </span>
                 <span className="text-[11px] text-[#6B5B52] font-semibold">
                   {t('delivery_pricing.extra_desc_sub', '2 km bepul + qolgan har km uchun')}
@@ -154,7 +154,7 @@ export const DeliveryPricingSection: React.FC = () => {
               </div>
 
               <p className="text-xs text-[#6B5B52] leading-relaxed">
-                {t('delivery_pricing.extra_desc', 'Dastlabki 2 km doim bepul hisoblanadi. 2 km dan oshgan har bir kilometr uchun 15 000 so\'mdan hisoblanadi.')}
+                {t('delivery_pricing.extra_desc', 'Dastlabki 2 km doim bepul hisoblanadi. 2 km dan oshgan har bir kilometr uchun 2 500 so\'mdan hisoblanadi.')}
               </p>
             </div>
 

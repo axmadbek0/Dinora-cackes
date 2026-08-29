@@ -342,25 +342,9 @@ adminHandler.on('message:text', async (ctx, next) => {
       ctx.session.step = 'IDLE';
       ctx.session.adminPriceTargetRequestId = undefined;
 
-      await ctx.reply(`✅ Maxsus tort so'rovi №<b>${updatedReq.requestNumber}</b> uchun narx <b>${priceNum.toLocaleString('uz-UZ')} UZS</b> deb belgilandi!`, {
+      await ctx.reply(`✅ Maxsus tort so'rovi №<b>${updatedReq.requestNumber}</b> uchun narx <b>${priceNum.toLocaleString('uz-UZ')} UZS</b> deb belgilandi va mijozga tasdiqlash uchun yuborildi!`, {
         parse_mode: 'HTML',
       });
-
-      // Notify customer
-      if (updatedReq.user?.telegramId) {
-        const acceptKb = new InlineKeyboard()
-          .text('✅ Narxni qabul qilish', `cake_accept_${updatedReq.id}`)
-          .text('❌ Rad etish', `cake_decline_${updatedReq.id}`);
-
-        await ctx.api.sendMessage(
-          Number(updatedReq.user.telegramId),
-          `🎂 <b>Maxsus tort so'rovingiz uchun narx belgilandi!</b>\n\n🆔 So'rov №: <b>${updatedReq.requestNumber}</b>\n💰 Narxi: <b>${priceNum.toLocaleString('uz-UZ')} so'm</b>\n\nBuyurtmani tasdiqlaysizmi?`,
-          {
-            parse_mode: 'HTML',
-            reply_markup: acceptKb,
-          }
-        ).catch(() => {});
-      }
     } catch (err: any) {
       return ctx.reply(`Xatolik yuz berdi: ${err.message}`);
     }

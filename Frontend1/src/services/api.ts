@@ -272,10 +272,11 @@ export const fetchBlockedDates = async (): Promise<string[]> => {
 
 export const pingLiveVisitor = async (sessionId: string): Promise<number> => {
   try {
-    const res = await apiClient.post<ApiResponse<{ onlineCount: number }>>('/analytics/ping', { sessionId });
-    return res.data?.data?.onlineCount || 3;
+    const res = await apiClient.post<any>('/analytics/ping', { sessionId });
+    const count = res.data?.data?.onlineCount ?? res.data?.count ?? 1;
+    return typeof count === 'number' && count >= 0 ? count : 1;
   } catch {
-    return 3;
+    return 1;
   }
 };
 

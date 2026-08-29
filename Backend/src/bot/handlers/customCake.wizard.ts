@@ -544,42 +544,7 @@ customCakeWizard.callbackQuery('cake_confirm_submission', async (ctx) => {
     }
   );
 
-  // Notify Admins
-  const adminCustomerName = escapeHtml(ctx.from?.first_name || 'Mijoz');
-  const adminUsername = escapeHtml(ctx.from?.username || 'yo\'q');
-  const adminPhone = escapeHtml(user?.phone || 'Tel ko\'rsatilmagan');
-
-  const adminMsg =
-    `🎂 <b>Yangi Maxsus Tort So'rovi №${cakeRequest.requestNumber}</b>\n\n` +
-    `👤 Mijoz: <b>${adminCustomerName}</b> (@${adminUsername})\n` +
-    `📞 Tel: <b>${adminPhone}</b>\n\n` +
-    `⭕️ Shakli: <b>${pending.shape || 'Dumaloq'}</b> (${pending.layers || '1 qavat'})\n` +
-    `🍰 Baza: <b>${pending.base || 'Biskvit'}</b>\n` +
-    `🥛 Krem: <b>${pending.cream || 'Slivki'}</b>\n` +
-    `🍓 Nachinka: <b>${pending.filling || 'Banan'}</b>\n` +
-    (pending.customText ? `✍️ Yozuv: "<b>${escapeHtml(pending.customText)}</b>"\n` : '') +
-    `📍 Masofa: <b>${pending.distanceKm || 0} km</b> (Delivery: ${(pending.deliveryFee || 0).toLocaleString('uz-UZ')} UZS)\n` +
-    `🚖 Yetkazish: <b>${pending.deliveryType || 'DELIVERY'}</b>\n\n` +
-    `<i>Pastdagi tugma orqali narx belgilang:</i>`;
-
-  for (const adminId of env.ADMIN_IDS) {
-    try {
-      if (pending.referenceImageUrl) {
-        await ctx.api.sendPhoto(adminId, pending.referenceImageUrl, {
-          caption: adminMsg,
-          parse_mode: 'HTML',
-          reply_markup: getAdminCustomCakePricingKeyboard(cakeRequest.id, env.FRONTEND_WEB_URL),
-        });
-      } else {
-        await ctx.api.sendMessage(adminId, adminMsg, {
-          parse_mode: 'HTML',
-          reply_markup: getAdminCustomCakePricingKeyboard(cakeRequest.id, env.FRONTEND_WEB_URL),
-        });
-      }
-    } catch (err) {
-      console.error(`Failed to notify admin ${adminId}:`, err);
-    }
-  }
+  // Admin notification is dispatched inside customCakeService.createRequest
 });
 
 /**

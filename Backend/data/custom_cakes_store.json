@@ -1,1 +1,39 @@
-[]
+[
+  {
+    "id": "cust-1788002682664-633",
+    "requestNumber": 1,
+    "userId": "usr-7354176053",
+    "referenceImageUrl": null,
+    "referenceImages": [],
+    "description": "🎂 Shakli: Yurak | 📐 Qavatlar: 2 qavat | 🍰 Korj (Baza): Shokoladli | 🥛 Krem: Sgushyonka | 🍓 Nachinka: Nutella | ✍️ Yozuv: \"\"tigilgan kuning muborak am\"",
+    "customDetails": {
+      "shape": "Yurak",
+      "layers": "2 qavat",
+      "base": "Shokoladli",
+      "cream": "Sgushyonka",
+      "filling": "Nutella",
+      "customText": "\"tigilgan kuning muborak am"
+    },
+    "phone": "Biriktirilmagan",
+    "customerName": "A",
+    "deliveryType": "PICKUP",
+    "deliveryRegion": "Sirdaryo tumani",
+    "addressDetails": null,
+    "deliveryAddress": "Do'kondan olib ketish (Sirdaryo t., M34 9-uy)",
+    "deliveryDate": null,
+    "latitude": null,
+    "longitude": null,
+    "distanceKm": 0,
+    "deliveryFee": 0,
+    "estimatedPrice": 23333,
+    "status": "PRICE_OFFERED",
+    "adminNotes": "Price set to 23333 UZS by Admin A",
+    "createdAt": "2026-08-29T11:24:42.664Z",
+    "updatedAt": "2026-08-29T11:26:37.422Z",
+    "user": {
+      "id": "usr-7354176053",
+      "firstName": "A",
+      "phone": "Biriktirilmagan"
+    }
+  }
+]

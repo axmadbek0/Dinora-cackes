@@ -1,18 +1,18 @@
 export class OnlineTracker {
   private static activeSessions = new Map<string, number>();
-  private static readonly TIMEOUT_MS = 30000; // 30 seconds
+  private static readonly TIMEOUT_MS = 25000; // 25 seconds
 
   static ping(sessionId: string): number {
     const now = Date.now();
     this.activeSessions.set(sessionId, now);
     this.cleanup(now);
-    return this.getCount();
+    return this.activeSessions.size;
   }
 
   static getCount(): number {
     const now = Date.now();
     this.cleanup(now);
-    return Math.max(1, this.activeSessions.size);
+    return this.activeSessions.size;
   }
 
   private static cleanup(now: number) {
@@ -23,3 +23,4 @@ export class OnlineTracker {
     }
   }
 }
+

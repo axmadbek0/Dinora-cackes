@@ -29,8 +29,19 @@ async function getCachedAllProducts() {
   return allProductsCache || [];
 }
 
-// "Katalogni ko'rish" — barcha mahsulotlarni to'g'ridan-to'g'ri ko'rsatish
-catalogHandler.hears(['🍰 Katalogni ko\'rish', '🍰 Каталогни кўриш', '🍰 Смотреть каталог'], async (ctx) => {
+// "Katalogni ko'rish" / "Tayyor Tortlar" — barcha mahsulotlarni to'g'ridan-to'g'ri ko'rsatish
+catalogHandler.hears(
+  [
+    '🎂 Tayyor Tortlar',
+    '🎂 Тайёр Тортлар',
+    '🎂 Каталог десертов',
+    '🍰 Katalogni ko\'rish',
+    '🍰 Каталогни кўриш',
+    '🍰 Смотреть каталог',
+    '/catalog',
+    '/tortlar',
+  ],
+  async (ctx) => {
   const products = await getCachedAllProducts();
 
   if (products.length === 0) {

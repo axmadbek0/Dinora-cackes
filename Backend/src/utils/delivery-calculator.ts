@@ -9,7 +9,8 @@ export const STORE_COORDINATES = {
 };
 
 export const FREE_THRESHOLD_KM = 2.0;
-export const RATE_PER_KM = 15000;
+export const RATE_PER_KM = 2500;
+export const CUSTOM_CAKE_RATE_PER_KM = 15000;
 
 export interface DeliveryFeeResult {
   distanceKm: number;
@@ -47,9 +48,9 @@ export const calculateDistanceKm = (
 };
 
 /**
- * Dynamic distance-based delivery fee calculation
+ * Dynamic distance-based delivery fee calculation (Standard Orders)
  * - 0.0 km - 2.0 km: FREE (0 UZS)
- * - Above 2.0 km: 15,000 UZS per additional km
+ * - Above 2.0 km: 2,500 UZS per additional km
  */
 export const calculateDeliveryFee = (distanceKm: number): DeliveryFeeResult => {
   const cleanDistance = Math.max(0, distanceKm || 0);
@@ -70,6 +71,34 @@ export const calculateDeliveryFee = (distanceKm: number): DeliveryFeeResult => {
     distanceKm: cleanDistance,
     deliveryFee: fee,
     isFreeDelivery: false,
-    breakdownText: `2.0 km bepul + ${extraDistance.toFixed(1)} km × 15,000 UZS`,
+    breakdownText: `2.0 km bepul + ${extraDistance.toFixed(1)} km × 2,500 UZS`,
+  };
+};
+
+/**
+ * Dynamic distance-based delivery fee calculation for Custom Cakes ("O'zim xohlaganimdek")
+ * - 0.0 km - 2.0 km: BEPUL (0 UZS)
+ * - Above 2.0 km: +15,000 UZS per additional km
+ */
+export const calculateCustomCakeDeliveryFee = (distanceKm: number): DeliveryFeeResult => {
+  const cleanDistance = Math.max(0, distanceKm || 0);
+
+  if (cleanDistance <= FREE_THRESHOLD_KM) {
+    return {
+      distanceKm: cleanDistance,
+      deliveryFee: 0,
+      isFreeDelivery: true,
+      breakdownText: `2.0 km gacha yetkazib berish BEPUL! 🎁`,
+    };
+  }
+
+  const extraDistance = cleanDistance - FREE_THRESHOLD_KM;
+  const fee = Math.ceil(extraDistance * CUSTOM_CAKE_RATE_PER_KM);
+
+  return {
+    distanceKm: cleanDistance,
+    deliveryFee: fee,
+    isFreeDelivery: false,
+    breakdownText: `2.0 km BEPUL + ${extraDistance.toFixed(1)} km × 15,000 UZS = ${fee.toLocaleString('uz-UZ')} UZS`,
   };
 };

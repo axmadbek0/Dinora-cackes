@@ -109,10 +109,17 @@ export const CakeRequestCard: React.FC<CakeRequestCardProps> = ({
           )}
         </div>
 
-        {/* Customer Text Description */}
-        <div className="p-3.5 bg-dinora-bg rounded-xl border border-dinora-border/80 text-xs text-dinora-chocolate space-y-1">
-          <strong className="block font-bold text-dinora-chocolate">Mijoz So'rovi & Izohi:</strong>
-          <p className="leading-relaxed">"{request.description}"</p>
+        {/* Customer Text Description & Structured Tags */}
+        <div className="p-3.5 bg-dinora-bg rounded-xl border border-dinora-border/80 text-xs text-dinora-chocolate space-y-2">
+          <div className="flex items-center justify-between">
+            <strong className="block font-bold text-dinora-chocolate">Mijoz So'rovi & Izohi:</strong>
+            {request.distanceKm && (
+              <span className="text-[10px] bg-dinora-gold/20 text-dinora-chocolate font-bold px-2 py-0.5 rounded-md">
+                📍 {request.distanceKm} km
+              </span>
+            )}
+          </div>
+          <p className="leading-relaxed bg-white/60 p-2.5 rounded-lg">"{request.description}"</p>
         </div>
 
         {/* Customer Contact & Address Info */}

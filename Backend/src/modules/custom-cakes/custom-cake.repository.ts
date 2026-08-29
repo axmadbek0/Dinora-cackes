@@ -51,6 +51,8 @@ export class CustomCakeRepository {
     const imageUrl = data.referenceImageUrl || (data.referenceImages && data.referenceImages.length > 0 ? data.referenceImages[0] : null);
     const lat = typeof data.latitude === 'number' ? data.latitude : (data.latitude ? parseFloat(data.latitude) : null);
     const lng = typeof data.longitude === 'number' ? data.longitude : (data.longitude ? parseFloat(data.longitude) : null);
+    const dist = typeof data.distanceKm === 'number' ? data.distanceKm : (data.distanceKm ? parseFloat(data.distanceKm) : null);
+    const fee = typeof data.deliveryFee === 'number' ? data.deliveryFee : (data.deliveryFee ? parseFloat(data.deliveryFee) : null);
 
     try {
       const created = await prisma.customCakeRequest.create({
@@ -68,18 +70,27 @@ export class CustomCakeRepository {
           user: true,
         },
       });
-      CustomCakeFileStore.createRequest(created);
-      return created;
+      const enriched = {
+        ...created,
+        customDetails: data.customDetails,
+        distanceKm: dist,
+        deliveryFee: fee,
+      };
+      CustomCakeFileStore.createRequest(enriched);
+      return enriched;
     } catch (err) {
       return CustomCakeFileStore.createRequest({
         userId,
         referenceImageUrl: imageUrl,
         referenceImages: data.referenceImages || (imageUrl ? [imageUrl] : []),
         description: data.description,
+        customDetails: data.customDetails,
         deliveryType: data.deliveryType,
         deliveryAddress: data.deliveryAddress,
         latitude: lat,
         longitude: lng,
+        distanceKm: dist,
+        deliveryFee: fee,
         estimatedPrice: null,
         status: 'PENDING_PRICING',
         customerName: data.firstName || 'Storefront Mijoz',

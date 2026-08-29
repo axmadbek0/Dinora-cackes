@@ -10,6 +10,15 @@ export enum CustomCakeStatus {
   CANCELLED = 'CANCELLED',
 }
 
+export interface CustomCakeDetails {
+  shape?: string;
+  layers?: string;
+  base?: string;
+  cream?: string;
+  filling?: string;
+  customText?: string;
+}
+
 export interface CustomCakeRequest {
   id: string;
   requestNumber: number;
@@ -18,10 +27,13 @@ export interface CustomCakeRequest {
   referenceImageUrl?: string | null;
   photos?: string[]; // Fallback list support
   description: string;
+  customDetails?: CustomCakeDetails;
   deliveryType: DeliveryType;
   deliveryAddress?: string | null;
   latitude?: number | null;
   longitude?: number | null;
+  distanceKm?: number | null;
+  deliveryFee?: number | null;
   estimatedPrice?: number | string | null;
   status: CustomCakeStatus;
   adminNotes?: string | null;

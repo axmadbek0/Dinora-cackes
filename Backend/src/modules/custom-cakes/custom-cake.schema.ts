@@ -10,10 +10,22 @@ export const createCustomCakeSchema = z.object({
     referenceImageUrl: z.string().optional(),
     referenceImages: z.array(z.string()).optional(),
     description: z.string().min(3, 'Detailed description is required'),
+    customDetails: z
+      .object({
+        shape: z.string().optional(),
+        layers: z.string().optional(),
+        base: z.string().optional(),
+        cream: z.string().optional(),
+        filling: z.string().optional(),
+        customText: z.string().optional(),
+      })
+      .optional(),
     deliveryType: z.enum(['DELIVERY', 'PICKUP']).default('DELIVERY'),
     deliveryAddress: z.string().optional(),
-    latitude: z.number().optional(),
-    longitude: z.number().optional(),
+    latitude: z.union([z.number(), z.string()]).optional(),
+    longitude: z.union([z.number(), z.string()]).optional(),
+    distanceKm: z.union([z.number(), z.string()]).optional(),
+    deliveryFee: z.union([z.number(), z.string()]).optional(),
     desiredWeightKg: z.number().optional(),
   }),
 });

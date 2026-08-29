@@ -120,23 +120,43 @@ export interface Order {
   }[];
 }
 
+export interface CustomCakeDetails {
+  shape?: string;
+  layers?: string;
+  base?: string;
+  cream?: string;
+  filling?: string;
+  customText?: string;
+}
+
 export interface CreateCustomCakePayload {
   description: string;
+  customDetails?: CustomCakeDetails;
   referenceImages: string[];
   phone: string;
   deliveryType: DeliveryType;
   deliveryAddress?: string;
   desiredWeightKg?: number;
+  latitude?: number | null;
+  longitude?: number | null;
+  distanceKm?: number | null;
+  deliveryFee?: number | null;
+  telegramId?: number;
 }
 
 export interface CustomCakeOrder {
   id: string;
   requestNumber: number;
   description: string;
+  customDetails?: CustomCakeDetails;
   referenceImages: string[];
   phone: string;
   deliveryType: DeliveryType;
   deliveryAddress?: string | null;
+  latitude?: number | null;
+  longitude?: number | null;
+  distanceKm?: number | null;
+  deliveryFee?: number | null;
   status: CustomCakeStatus;
   estimatedPrice?: number | null;
   createdAt: string;

@@ -55,10 +55,30 @@ export const PriceOfferModal: React.FC<PriceOfferModalProps> = ({
       maxWidth="md"
     >
       <form onSubmit={handleSubmit} className="space-y-4">
-        {/* Customer Description Review */}
-        <div className="p-3 bg-dinora-bg rounded-xl border border-dinora-border text-xs text-dinora-chocolate">
-          <strong className="block font-bold text-dinora-chocolate mb-1">Mijoz Tavsifi:</strong>
-          <p className="italic">"{request.description}"</p>
+        {/* Order Custom Details Summary */}
+        <div className="bg-dinora-bg p-3.5 rounded-xl border border-dinora-border text-xs text-dinora-chocolate space-y-1">
+          <p>
+            <strong>Shakli:</strong>{' '}
+            {request.customDetails?.shape || (request.description.match(/Shakli:\s*([^|]+)/i)?.[1]?.trim()) || 'Belgilanmagan'}
+          </p>
+          <p>
+            <strong>Krem:</strong>{' '}
+            {request.customDetails?.cream || (request.description.match(/Krem:\s*([^|]+)/i)?.[1]?.trim()) || 'Slivki'}
+          </p>
+          <p>
+            <strong>Yozuv:</strong> "
+            {request.customDetails?.customText || (request.description.match(/Yozuv:\s*"([^"]+)"/i)?.[1]?.trim()) || request.description}"
+          </p>
+          <p>
+            <strong>Masofa:</strong>{' '}
+            {request.distanceKm || (request.description.match(/Masofa:\s*([\d.]+)\s*km/i)?.[1]) || '2.0'} km (Delivery:{' '}
+            {request.deliveryFee !== undefined && request.deliveryFee !== null
+              ? typeof request.deliveryFee === 'number'
+                ? request.deliveryFee.toLocaleString('uz-UZ')
+                : request.deliveryFee
+              : request.description.match(/Yetkazish:\s*([\d,\s]+)\s*UZS/i)?.[1] || '0'}{' '}
+            UZS)
+          </p>
         </div>
 
         {/* Estimated Price Input */}

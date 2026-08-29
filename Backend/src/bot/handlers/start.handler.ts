@@ -199,10 +199,21 @@ startHandler.hears(['📞 Aloqa & Ma\'lumot', '📞 Алоқа & Маълумо�
   }
 });
 
-// 4. Order Tracking Handler & Commands (/track, /orders, /buyurtmalar)
-startHandler.hears(['🚚 Buyurtmani kuzatish', '🚚 Буюртмани кузатиш', '🚚 Отследить заказ'], async (ctx) => {
-  return handleOrderTracking(ctx);
-});
+// 4. Order Tracking Handler & Commands (/track, /orders, /buyurtmalar, /delivery)
+startHandler.hears(
+  [
+    '🚚 Yetkazib berish & Buyurtmalar',
+    '🚚 Етказиб бериш & Кузатиш',
+    '🚚 Доставка и заказы',
+    '🚚 Yetkazib berish',
+    '🚚 Buyurtmani kuzatish',
+    '🚚 Буюртмани кузатиш',
+    '🚚 Отследить заказ',
+  ],
+  async (ctx) => {
+    return handleOrderTracking(ctx);
+  }
+);
 
 startHandler.command(['track', 'orders', 'buyurtmalar'], async (ctx) => {
   return handleOrderTracking(ctx);

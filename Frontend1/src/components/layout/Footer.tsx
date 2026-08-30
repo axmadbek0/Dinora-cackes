@@ -31,7 +31,7 @@ export const Footer: React.FC = () => {
         <div className="md:col-span-2 space-y-3">
           <div className="flex items-center space-x-3">
             <img
-              src="/products/logotip.png"
+              src="/logatip.jpg"
               alt="DINORA Logo"
               className="w-10 h-10 sm:w-11 sm:h-11 rounded-full object-cover border-2 border-[#CBB279] shadow-md shrink-0"
             />

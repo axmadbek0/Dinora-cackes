@@ -40,7 +40,7 @@ export const Header: React.FC<HeaderProps> = ({
               className="flex items-center space-x-2 sm:space-x-3 cursor-pointer group shrink-0"
             >
               <img
-                src="/carts/logotip.jpg"
+                src="/logatip.jpg"
                 alt="DINORA Logo"
                 className="w-9 h-9 sm:w-11 sm:h-11 rounded-full object-cover shadow-md group-hover:scale-105 transition-transform duration-300 border-2 border-[#CBB279] shrink-0"
               />
@@ -195,9 +195,9 @@ export const Header: React.FC<HeaderProps> = ({
                 <div className="flex items-center justify-between border-b border-[#2B1810]/10 pb-4 mb-6">
                   <div className="flex items-center space-x-2">
                     <img
-                      src="/carts/logotip.jpg"
-                      alt="DINORA"
-                      className="w-10 h-10 rounded-full border border-[#CBB279]"
+                      src="/logatip.jpg"
+                      alt="DINORA Logo"
+                      className="w-10 h-10 rounded-full object-cover border-2 border-[#CBB279] shadow-md"
                     />
                     <div>
                       <span className="font-serif font-bold text-lg text-[#2B1810] block">DINORA</span>

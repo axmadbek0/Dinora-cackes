@@ -107,7 +107,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose, onOrder
             <div className="p-5 border-b border-[#2B1810]/10 flex items-center justify-between bg-[#FAF6F0]">
               <div className="flex items-center space-x-2.5">
                 <img
-                  src="/products/logotip.png"
+                  src="/logatip.jpg"
                   alt="DINORA Logo"
                   className="w-7 h-7 rounded-full object-cover border border-[#CBB279] shadow-sm shrink-0"
                 />

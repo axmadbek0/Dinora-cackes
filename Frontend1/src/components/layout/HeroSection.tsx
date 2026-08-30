@@ -108,7 +108,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
         >
           <div className="relative aspect-[4/5] w-full max-w-xs sm:max-w-md mx-auto rounded-3xl overflow-hidden shadow-2xl border-4 border-white gold-border-glow bg-white">
             <img
-              src="/products/logotip.png"
+              src="/logatip.jpg"
               alt="DINORA Royal Pastry"
               className="w-full h-full object-contain p-4 sm:p-6 hover:scale-105 transition-transform duration-500"
             />

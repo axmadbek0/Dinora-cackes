@@ -23,28 +23,28 @@ export const Header: React.FC<HeaderProps> = ({
 
   const titleMap: Record<ActiveTab, { title: string; subtitle: string }> = {
     analytics: {
-      title: t('admin.analytics'),
-      subtitle: t('admin.header_analytics'),
+      title: t('admin.analytics', 'Tahlillar & Statistika'),
+      subtitle: t('admin.header_analytics', "Sotuvlar va buyurtmalar bo'yicha real vaqtdagi ko'rsatkichlar"),
     },
     products: {
-      title: t('admin.products'),
-      subtitle: t('admin.header_products'),
+      title: t('admin.products', 'Mahsulotlar'),
+      subtitle: t('admin.header_products', 'Katalog, narxlar va zaxira holatini boshqarish'),
     },
     orders: {
-      title: t('admin.orders'),
-      subtitle: t('admin.header_orders'),
+      title: t('admin.orders', 'Buyurtmalar'),
+      subtitle: t('admin.header_orders', 'Mijozlardan tushgan yangi buyurtmalarni tasdiqlash va boshqarish'),
     },
     'custom-cakes': {
-      title: t('admin.custom_cakes'),
-      subtitle: t('admin.header_custom_cakes'),
+      title: t('admin.custom_cakes', 'Maxsus Tortlar'),
+      subtitle: t('admin.header_custom_cakes', "Individual dizaynli tortlar bo'yicha so'rovlar va narx belgilash"),
     },
     users: {
-      title: t('admin.users'),
-      subtitle: t('admin.header_users'),
+      title: t('admin.users', 'Foydalanuvchilar'),
+      subtitle: t('admin.header_users', "Mijozlar ro'yxati, buyurtmalar statistikasi va ruxsatlar"),
     },
     settings: {
-      title: t('admin.settings'),
-      subtitle: t('admin.header_settings'),
+      title: t('admin.settings', 'Tizim Sozlamalari'),
+      subtitle: t('admin.header_settings', "Ish vaqtlari, aloqa va to'lov ma'lumotlari"),
     },
   };
 
@@ -70,10 +70,10 @@ export const Header: React.FC<HeaderProps> = ({
             onClick={onRefresh}
             disabled={isRefreshing}
             className="p-2 sm:px-3 sm:py-2 rounded-xl text-dinora-chocolate hover:bg-dinora-gold-light/50 transition-all border border-dinora-border flex items-center gap-1.5 text-xs font-medium"
-            title={t('admin.refresh')}
+            title={t('admin.refresh', 'Yangilash')}
           >
             <RefreshCw className={`w-4 h-4 text-dinora-gold ${isRefreshing ? 'animate-spin' : ''}`} />
-            <span className="hidden sm:inline">{t('admin.refresh')}</span>
+            <span className="hidden sm:inline">{t('admin.refresh', 'Yangilash')}</span>
           </button>
         )}
 
@@ -84,7 +84,7 @@ export const Header: React.FC<HeaderProps> = ({
         <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-medium">
           <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0" />
           <span className="truncate max-w-[140px]">
-            {telegramUser ? `TG: ${telegramUser.first_name}` : t('admin.admin')}
+            {telegramUser ? `TG: ${telegramUser.first_name}` : t('admin.admin', 'Admin')}
           </span>
         </div>
 

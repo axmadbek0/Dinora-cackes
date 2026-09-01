@@ -24,6 +24,7 @@ import { triggerSuccessHaptic, triggerHaptic } from '../../utils/haptics';
 import { calculateCustomCakeDeliveryFee, STORE_COORDINATES } from '../../utils/deliveryCalculator';
 import type { DeliveryType } from '../../types';
 import { motion, AnimatePresence } from 'framer-motion';
+import { compressAndConvertToBase64 } from '../../utils/compressImage';
 
 interface CustomCakeFullScreenModalProps {
   isOpen: boolean;
@@ -240,8 +241,8 @@ export const CustomCakeFullScreenModal: React.FC<CustomCakeFullScreenModalProps>
     setPhone(formatted);
   };
 
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (!e.target.files) return;
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files || e.target.files.length === 0) return;
     const files = Array.from(e.target.files);
     const remainingSlots = 3 - images.length;
     if (remainingSlots <= 0) {
@@ -249,16 +250,16 @@ export const CustomCakeFullScreenModal: React.FC<CustomCakeFullScreenModalProps>
       return;
     }
 
-    files.slice(0, remainingSlots).forEach((file) => {
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        if (event.target?.result) {
-          triggerHaptic('light');
-          setImages((prev) => [...prev, event.target!.result as string].slice(0, 3));
-        }
-      };
-      reader.readAsDataURL(file);
-    });
+    const filesToCompress = files.slice(0, remainingSlots);
+    for (const file of filesToCompress) {
+      try {
+        const compressedBase64 = await compressAndConvertToBase64(file, 800, 800, 0.75);
+        triggerHaptic('light');
+        setImages((prev) => [...prev, compressedBase64].slice(0, 3));
+      } catch (err) {
+        console.error('Image compression error:', err);
+      }
+    }
   };
 
   const handleRemoveImage = (index: number) => {

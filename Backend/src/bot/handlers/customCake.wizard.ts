@@ -350,13 +350,21 @@ customCakeWizard.callbackQuery('cake_skip_photo', async (ctx) => {
   return promptForDeliveryMethod(ctx);
 });
 
-customCakeWizard.on('message:photo', async (ctx, next) => {
-  if (ctx.session.step === 'AWAITING_CUSTOM_PHOTO') {
-    const photo = ctx.message.photo.pop();
+customCakeWizard.on(['message:photo', 'message:document'], async (ctx, next) => {
+  const photo = ctx.message.photo ? ctx.message.photo.pop() : null;
+  const doc = ctx.message.document;
+  const isImageDoc = doc && doc.mime_type && doc.mime_type.startsWith('image/');
+  const fileId = photo?.file_id || (isImageDoc ? doc?.file_id : null);
+
+  if (fileId) {
     if (!ctx.session.pendingCustomCake) ctx.session.pendingCustomCake = {};
-    if (photo) {
-      ctx.session.pendingCustomCake.referenceImageUrl = photo.file_id;
+    ctx.session.pendingCustomCake.referenceImageUrl = fileId;
+
+    if (ctx.message.caption && !ctx.session.pendingCustomCake.customText) {
+      ctx.session.pendingCustomCake.customText = ctx.message.caption.trim();
     }
+
+    await ctx.reply('✅ <b>Namuna fotosurat qabul qilindi!</b> 📸', { parse_mode: 'HTML' });
     return promptForDeliveryMethod(ctx);
   }
   return next();

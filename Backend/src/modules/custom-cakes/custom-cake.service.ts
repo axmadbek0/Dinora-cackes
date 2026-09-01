@@ -5,7 +5,7 @@ import { CustomCakeStatus } from '@prisma/client';
 import { assertDateAvailable } from '../../utils/availability.validator.js';
 import { getAdminCustomCakePricingKeyboard } from '../../bot/keyboards/admin.keyboard.js';
 import { env } from '../../config/env.js';
-import { Bot, InlineKeyboard } from 'grammy';
+import { Bot, InlineKeyboard, InputFile } from 'grammy';
 
 function escapeHtml(str?: string): string {
   if (!str) return '';
@@ -59,8 +59,14 @@ export class CustomCakeService {
 
       for (const adminId of env.ADMIN_IDS) {
         try {
-          if (imageUrl && !imageUrl.startsWith('data:')) {
-            await this.bot.api.sendPhoto(adminId, imageUrl, {
+          if (imageUrl) {
+            let photoSource: any = imageUrl;
+            if (imageUrl.startsWith('data:')) {
+              const base64Data = imageUrl.replace(/^data:image\/\w+;base64,/, '');
+              const buffer = Buffer.from(base64Data, 'base64');
+              photoSource = new InputFile(buffer, `custom-cake-${created.requestNumber}.jpg`);
+            }
+            await this.bot.api.sendPhoto(adminId, photoSource, {
               caption: adminMsg,
               parse_mode: 'HTML',
               reply_markup: getAdminCustomCakePricingKeyboard(created.id, env.FRONTEND_WEB_URL),

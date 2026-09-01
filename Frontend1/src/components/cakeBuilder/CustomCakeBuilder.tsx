@@ -6,6 +6,8 @@ import { triggerSuccessHaptic, triggerHaptic } from '../../utils/haptics';
 import type { DeliveryType } from '../../types';
 import { motion, AnimatePresence } from 'framer-motion';
 
+import { compressAndConvertToBase64 } from '../../utils/compressImage';
+
 interface CustomCakeBuilderProps {
   isOpen: boolean;
   onClose: () => void;
@@ -24,27 +26,26 @@ export const CustomCakeBuilder: React.FC<CustomCakeBuilderProps> = ({ isOpen, on
 
   if (!isOpen) return null;
 
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (!e.target.files) return;
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files || e.target.files.length === 0) return;
     const files = Array.from(e.target.files);
 
     const remainingSlots = 2 - images.length;
     if (remainingSlots <= 0) {
-      alert("Faqat 2 ta rasim yuklash mumkin!");
+      alert("Ko'pi bilan 2 ta rasm yuklashingiz mumkin!");
       return;
     }
 
-    const filesToRead = files.slice(0, remainingSlots);
-    filesToRead.forEach(file => {
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        if (event.target?.result) {
-          triggerHaptic('light');
-          setImages(prev => [...prev, event.target!.result as string].slice(0, 2));
-        }
-      };
-      reader.readAsDataURL(file);
-    });
+    const filesToCompress = files.slice(0, remainingSlots);
+    for (const file of filesToCompress) {
+      try {
+        const compressedBase64 = await compressAndConvertToBase64(file, 800, 800, 0.75);
+        triggerHaptic('light');
+        setImages((prev) => [...prev, compressedBase64].slice(0, 2));
+      } catch (err) {
+        console.error('Image compression error:', err);
+      }
+    }
   };
 
   const handleRemoveImage = (index: number) => {
@@ -54,8 +55,8 @@ export const CustomCakeBuilder: React.FC<CustomCakeBuilderProps> = ({ isOpen, on
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (images.length !== 2) {
-      alert("Iltimos, aynan 2 ta namuna rasim yuklang!");
+    if (images.length === 0) {
+      alert("Iltimos, kamida 1 ta namuna rasm yuklang!");
       return;
     }
     if (!description.trim()) {

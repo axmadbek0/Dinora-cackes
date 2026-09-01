@@ -612,7 +612,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({
         {/* Modal Buttons */}
         <div className="flex items-center justify-end gap-3 pt-4 border-t border-dinora-border">
           <Button type="button" variant="secondary" onClick={onClose}>
-            {t('admin.cancel')}
+            {t('admin.cancel', 'Bekor qilish')}
           </Button>
           <Button
             type="submit"
@@ -620,7 +620,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({
             isLoading={isLoading || imageCompressing}
             disabled={imageCompressing}
           >
-            {isEdit ? t('admin.save') : t('admin.add_product')}
+            {isEdit ? t('admin.save', 'Saqlash') : t('admin.add_product', "Qo'shish")}
           </Button>
         </div>
       </form>

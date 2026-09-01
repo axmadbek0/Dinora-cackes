@@ -1,4 +1,4 @@
-import { Composer } from 'grammy';
+import { Composer, InputFile } from 'grammy';
 import { BotContext } from '../context.js';
 import { ProductService } from '../../modules/products/product.service.js';
 import { getProductInlineKeyboard } from '../keyboards/catalog.keyboard.js';
@@ -10,6 +10,15 @@ const productService = new ProductService();
 let allProductsCache: any[] | null = null;
 let lastProductsCacheTime = 0;
 const CACHE_TTL_MS = 60 * 1000; // 1 minute RAM cache TTL
+
+function formatPhotoSource(imageUrl: string, productId: string): string | InputFile {
+  if (imageUrl.startsWith('data:')) {
+    const base64Data = imageUrl.replace(/^data:image\/\w+;base64,/, '');
+    const buffer = Buffer.from(base64Data, 'base64');
+    return new InputFile(buffer, `product-${productId}.jpg`);
+  }
+  return imageUrl;
+}
 
 async function getCachedAllProducts() {
   const now = Date.now();
@@ -61,7 +70,8 @@ catalogHandler.hears(
 
     try {
       if (product.imageUrl) {
-        await ctx.replyWithPhoto(product.imageUrl, {
+        const photoSource = formatPhotoSource(product.imageUrl, product.id);
+        await ctx.replyWithPhoto(photoSource, {
           caption: text,
           parse_mode: 'HTML',
           reply_markup: getProductInlineKeyboard(product.id),
@@ -103,7 +113,8 @@ catalogHandler.callbackQuery('catalog_page_1', async (ctx) => {
 
     try {
       if (product.imageUrl) {
-        await ctx.replyWithPhoto(product.imageUrl, {
+        const photoSource = formatPhotoSource(product.imageUrl, product.id);
+        await ctx.replyWithPhoto(photoSource, {
           caption: text,
           parse_mode: 'HTML',
           reply_markup: getProductInlineKeyboard(product.id),

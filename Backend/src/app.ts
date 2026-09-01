@@ -45,9 +45,9 @@ export function createApp() {
   // Global General Rate Limiter
   app.use(generalRateLimiter);
 
-  // Payload body parsers with reasonable size limit (2MB)
-  app.use(express.json({ limit: '5mb' }));
-  app.use(express.urlencoded({ extended: true, limit: '5mb' }));
+  // Payload body parsers with size limit for compressed Base64 images
+  app.use(express.json({ limit: '20mb' }));
+  app.use(express.urlencoded({ extended: true, limit: '20mb' }));
 
   // 1. Static uploads directory with explicit Cross-Origin headers
   const publicUploadsPath = path.join(process.cwd(), 'public', 'uploads');

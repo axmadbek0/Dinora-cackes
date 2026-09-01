@@ -8,6 +8,8 @@ import { Image, DollarSign, Tag, FileText, Upload, Link, X, CheckCircle, Globe, 
 import { apiClient } from '../../../api/axios.client';
 import { getImageUrl } from '../../../utils/imageUrl';
 
+import { compressAndConvertToBase64 } from '../../../utils/compressImage';
+
 interface ProductModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -51,11 +53,12 @@ export const ProductModal: React.FC<ProductModalProps> = ({
   const [storageConditions, setStorageConditions] = useState('');
   const [deliveryTerms, setDeliveryTerms] = useState('');
 
-  // Image upload state
-  const [imageMode, setImageMode] = useState<'url' | 'file'>('url');
+  // Image upload & compression state
+  const [imageMode, setImageMode] = useState<'file' | 'url'>('file');
   const [imagePreview, setImagePreview] = useState<string | null>(null);
-  const [imageUploading, setImageUploading] = useState(false);
-  const [imageUploadSuccess, setImageUploadSuccess] = useState(false);
+  const [imageCompressing, setImageCompressing] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
+  const [imageStats, setImageStats] = useState<{ sizeKB: number } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -78,9 +81,15 @@ export const ProductModal: React.FC<ProductModalProps> = ({
       setPrice(String(product.price));
       setImageUrl(product.imageUrl || '');
       setImagePreview(product.imageUrl || null);
+      if (product.imageUrl && product.imageUrl.startsWith('data:')) {
+        const estKB = Math.round((product.imageUrl.length * 0.75) / 1024);
+        setImageStats({ sizeKB: estKB });
+      } else {
+        setImageStats(null);
+      }
       setCategoryId(product.categoryId && product.categoryId !== 'cat-all' ? product.categoryId : defaultCatId);
       setIsAvailable(product.isAvailable ?? true);
-      setImageMode(product.imageUrl ? 'url' : 'url');
+      setImageMode(product.imageUrl?.startsWith('http') ? 'url' : 'file');
     } else {
       setNameUz('');
       setNameUzCyrl('');
@@ -94,20 +103,18 @@ export const ProductModal: React.FC<ProductModalProps> = ({
       setPrice('');
       setImageUrl('');
       setImagePreview(null);
+      setImageStats(null);
       setCategoryId(defaultCatId);
       setIsAvailable(true);
-      setImageMode('url');
+      setImageMode('file');
     }
     setErrors({});
-    setImageUploadSuccess(false);
+    setImageCompressing(false);
   }, [product, categories, isOpen]);
 
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    if (file.size > 5 * 1024 * 1024) {
-      setErrors(prev => ({ ...prev, image: "Rasm hajmi 5 MB dan oshmasligi kerak" }));
+  const processFile = async (file: File) => {
+    if (!file.type.startsWith('image/')) {
+      setErrors(prev => ({ ...prev, image: "Faqat rasm fayllari (JPG, PNG, WEBP) qabul qilinadi" }));
       return;
     }
 
@@ -117,40 +124,42 @@ export const ProductModal: React.FC<ProductModalProps> = ({
       return n;
     });
 
-    const reader = new FileReader();
-    reader.onload = async (ev) => {
-      const base64 = ev.target?.result as string;
-      setImagePreview(base64);
-      setImageUploading(true);
-      setImageUploadSuccess(false);
+    try {
+      setImageCompressing(true);
+      // Compress using HTML5 Canvas API (max: 800x800, JPEG quality: 0.75)
+      const compressedBase64 = await compressAndConvertToBase64(file, 800, 800, 0.75);
+      setImagePreview(compressedBase64);
+      setImageUrl(compressedBase64);
+      const sizeKB = Math.round((compressedBase64.length * 0.75) / 1024);
+      setImageStats({ sizeKB });
+    } catch (err) {
+      console.error('Image compression error:', err);
+      setErrors(prev => ({ ...prev, image: "Rasmni siqishda xatolik yuz berdi" }));
+    } finally {
+      setImageCompressing(false);
+    }
+  };
 
-      try {
-        const response = await apiClient.post('/products/upload-image', {
-          imageBase64: base64,
-          fileName: file.name.replace(/\.[^.]+$/, ''),
-        });
-        const uploadedUrl = response.data?.data?.imageUrl;
-        if (uploadedUrl) {
-          setImageUrl(uploadedUrl);
-          setImageUploadSuccess(true);
-        } else {
-          throw new Error('URL qaytmadi');
-        }
-      } catch (err) {
-        setImageUrl(base64);
-        setImageUploadSuccess(true);
-        console.warn('Image upload to server failed, using base64');
-      } finally {
-        setImageUploading(false);
-      }
-    };
-    reader.readAsDataURL(file);
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      processFile(file);
+    }
+  };
+
+  const handleDrop = (e: React.DragEvent<HTMLElement>) => {
+    e.preventDefault();
+    setIsDragging(false);
+    const file = e.dataTransfer.files?.[0];
+    if (file) {
+      processFile(file);
+    }
   };
 
   const clearImage = () => {
     setImageUrl('');
     setImagePreview(null);
-    setImageUploadSuccess(false);
+    setImageStats(null);
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
@@ -421,7 +430,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({
               <input
                 ref={fileInputRef}
                 type="file"
-                accept="image/jpeg,image/jpg,image/png,image/webp,image/gif"
+                accept="image/jpeg,image/jpg,image/png,image/webp"
                 className="hidden"
                 id="product-image-upload"
                 onChange={handleFileChange}
@@ -430,56 +439,82 @@ export const ProductModal: React.FC<ProductModalProps> = ({
               {!imagePreview ? (
                 <label
                   htmlFor="product-image-upload"
-                  className="flex flex-col items-center justify-center gap-3 w-full h-36 rounded-xl border-2 border-dashed border-dinora-border bg-dinora-bg hover:border-dinora-gold hover:bg-dinora-gold/5 cursor-pointer transition-all group"
+                  onDragOver={(e) => {
+                    e.preventDefault();
+                    setIsDragging(true);
+                  }}
+                  onDragLeave={(e) => {
+                    e.preventDefault();
+                    setIsDragging(false);
+                  }}
+                  onDrop={handleDrop}
+                  className={`flex flex-col items-center justify-center gap-3 w-full h-40 rounded-2xl border-2 border-dashed transition-all cursor-pointer group ${
+                    isDragging
+                      ? 'border-dinora-gold bg-dinora-gold/10 scale-[1.01]'
+                      : 'border-dinora-border bg-dinora-bg hover:border-dinora-gold hover:bg-dinora-gold/5'
+                  }`}
                 >
-                  <div className="w-10 h-10 rounded-full bg-dinora-gold/10 flex items-center justify-center group-hover:bg-dinora-gold/20 transition-colors">
-                    <Upload className="w-5 h-5 text-dinora-gold" />
+                  <div className="w-12 h-12 rounded-full bg-dinora-gold/10 flex items-center justify-center group-hover:bg-dinora-gold/20 transition-colors">
+                    {imageCompressing ? (
+                      <div className="w-6 h-6 border-2 border-dinora-gold border-t-transparent rounded-full animate-spin" />
+                    ) : (
+                      <Upload className="w-6 h-6 text-dinora-gold" />
+                    )}
                   </div>
-                  <div className="text-center">
-                    <p className="text-sm font-semibold text-dinora-chocolate">
-                      Rasm tanlash uchun bosing
+                  <div className="text-center px-4">
+                    <p className="text-sm font-bold text-dinora-chocolate">
+                      {imageCompressing
+                        ? 'Rasm siqilmoqda (Canvas 800px JPEG)...'
+                        : 'Rasm tanlash yoki sudrab tashlash'}
                     </p>
-                    <p className="text-xs text-dinora-chocolate/50 mt-0.5">
-                      JPG, PNG, WEBP — max 5 MB
+                    <p className="text-xs text-dinora-gray mt-1">
+                      Avtomatik 800x800px Base64 siqish (DB & Web uchun optimallashtirilgan)
                     </p>
                   </div>
                 </label>
               ) : (
-                <div className="relative rounded-xl overflow-hidden border border-dinora-border bg-white">
+                <div className="relative rounded-2xl overflow-hidden border border-dinora-border bg-white shadow-xs">
                   <img
                     src={getImageUrl(imagePreview)}
                     alt="Rasm ko'rinishi"
                     onError={(e) => {
                       (e.target as HTMLImageElement).src = '/logotip.png';
                     }}
-                    className="w-full h-40 object-cover"
+                    className="w-full h-44 object-cover"
                   />
-                  <div className="absolute inset-0 bg-black/30 flex items-center justify-center">
-                    {imageUploading ? (
-                      <div className="flex items-center gap-2 bg-white/90 rounded-full px-4 py-2">
-                        <div className="w-4 h-4 border-2 border-dinora-gold border-t-transparent rounded-full animate-spin" />
-                        <span className="text-xs font-semibold text-dinora-chocolate">Yuklanmoqda...</span>
-                      </div>
-                    ) : imageUploadSuccess ? (
-                      <div className="flex items-center gap-2 bg-emerald-500/90 rounded-full px-4 py-2">
-                        <CheckCircle className="w-4 h-4 text-white" />
-                        <span className="text-xs font-semibold text-white">Muvaffaqiyatli yuklandi</span>
-                      </div>
-                    ) : null}
+                  
+                  {/* Overlay stats and compression status */}
+                  <div className="absolute bottom-2 left-2 flex items-center gap-1.5 bg-black/75 backdrop-blur-md text-white px-2.5 py-1 rounded-lg text-[11px] font-medium shadow">
+                    <CheckCircle className="w-3.5 h-3.5 text-emerald-400" />
+                    <span>Siqilgan Base64</span>
+                    {imageStats && (
+                      <span className="text-dinora-gold font-bold">({imageStats.sizeKB} KB)</span>
+                    )}
                   </div>
+
+                  {imageCompressing && (
+                    <div className="absolute inset-0 bg-black/40 backdrop-blur-xs flex items-center justify-center">
+                      <div className="flex items-center gap-2 bg-white/95 rounded-full px-4 py-2 shadow-lg">
+                        <div className="w-4 h-4 border-2 border-dinora-gold border-t-transparent rounded-full animate-spin" />
+                        <span className="text-xs font-bold text-dinora-chocolate">Siqilmoqda...</span>
+                      </div>
+                    </div>
+                  )}
+
                   <div className="absolute top-2 right-2 flex gap-2">
                     <label
                       htmlFor="product-image-upload"
-                      className="cursor-pointer bg-white/90 hover:bg-white text-dinora-chocolate text-xs font-semibold px-3 py-1.5 rounded-lg shadow transition-colors"
+                      className="cursor-pointer bg-white/95 hover:bg-white text-dinora-chocolate text-xs font-bold px-3 py-1.5 rounded-lg shadow-md transition-colors"
                     >
                       Almashtirish
                     </label>
                     <button
                       type="button"
                       onClick={clearImage}
-                      className="bg-red-500/90 hover:bg-red-500 text-white p-1.5 rounded-lg shadow transition-colors"
+                      className="bg-red-500 hover:bg-red-600 text-white p-1.5 rounded-lg shadow-md transition-colors"
+                      title="Rasmni o'chirish"
                     >
-                      <X className="w-3.5 h-3.5" />
+                      <X className="w-4 h-4" />
                     </button>
                   </div>
                 </div>
@@ -582,8 +617,8 @@ export const ProductModal: React.FC<ProductModalProps> = ({
           <Button
             type="submit"
             variant="gold"
-            isLoading={isLoading || imageUploading}
-            disabled={imageUploading}
+            isLoading={isLoading || imageCompressing}
+            disabled={imageCompressing}
           >
             {isEdit ? t('admin.save') : t('admin.add_product')}
           </Button>

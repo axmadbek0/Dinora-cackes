@@ -37,7 +37,7 @@ export const Header: React.FC<HeaderProps> = ({
             {/* Brand Logo & Title */}
             <div 
               onClick={() => onNavigateSection('catalog')}
-              className="flex items-center space-x-2 sm:space-x-3 cursor-pointer group shrink-0"
+              className="flex items-center space-x-2 sm:space-x-3 cursor-pointer group shrink-0 active:scale-95 transition-all duration-150 select-none"
             >
               <img
                 src="/logatip.jpg"
@@ -60,36 +60,39 @@ export const Header: React.FC<HeaderProps> = ({
             </div>
 
             {/* Desktop Navigation Links (Visible on xl: >= 1280px) */}
-            <nav className="hidden xl:flex items-center space-x-6 xl:space-x-8 text-xs xl:text-sm font-semibold text-[#6B5B52]">
+            <nav className="hidden xl:flex items-center space-x-1 text-sm font-medium text-[#5A4A42]">
               <button
+                type="button"
                 onClick={() => onNavigateSection('catalog')}
-                className="hover:text-[#D65B78] transition-colors py-1 border-b-2 border-transparent hover:border-[#D65B78]"
+                className="px-3.5 py-2 rounded-xl hover:text-[#D65B78] hover:bg-[#2B1810]/5 active:scale-95 transition-all duration-150 cursor-pointer select-none"
               >
                 {t('nav.catalog')}
               </button>
               <button
+                type="button"
                 onClick={onOpenCustomCake}
-                className="hover:text-[#D65B78] transition-colors py-1 flex items-center space-x-1.5 text-[#2B1810] font-bold"
+                className="px-3.5 py-2 rounded-xl hover:text-[#D65B78] hover:bg-[#2B1810]/5 active:scale-95 transition-all duration-150 cursor-pointer select-none"
               >
-                <Cake className="w-4 h-4 text-[#D65B78]" />
-                <span>{t('nav.custom_cake')}</span>
+                {t('nav.custom_cake')}
               </button>
               <button
+                type="button"
                 onClick={() => onNavigateSection('location')}
-                className="hover:text-[#D65B78] transition-colors py-1 flex items-center space-x-1 font-bold text-[#D65B78]"
+                className="px-3.5 py-2 rounded-xl hover:text-[#D65B78] hover:bg-[#2B1810]/5 active:scale-95 transition-all duration-150 cursor-pointer select-none"
               >
-                <MapPin className="w-4 h-4 text-[#D65B78]" />
-                <span>{t('nav.location')}</span>
+                {t('nav.location')}
               </button>
               <button
+                type="button"
                 onClick={() => onNavigateSection('certificate')}
-                className="hover:text-[#D65B78] transition-colors py-1"
+                className="px-3.5 py-2 rounded-xl hover:text-[#D65B78] hover:bg-[#2B1810]/5 active:scale-95 transition-all duration-150 cursor-pointer select-none"
               >
                 {t('nav.certificate')}
               </button>
               <button
+                type="button"
                 onClick={() => onNavigateSection('contact')}
-                className="hover:text-[#D65B78] transition-colors py-1"
+                className="px-3.5 py-2 rounded-xl hover:text-[#D65B78] hover:bg-[#2B1810]/5 active:scale-95 transition-all duration-150 cursor-pointer select-none"
               >
                 {t('nav.contact')}
               </button>
@@ -113,42 +116,45 @@ export const Header: React.FC<HeaderProps> = ({
 
               {/* Custom Cake Button (Visible on Tablets & iPad Pro) */}
               <button
+                type="button"
                 onClick={onOpenCustomCake}
                 title={t('nav.custom_cake')}
-                className="hidden sm:flex xl:hidden items-center space-x-1.5 px-3 py-2 rounded-2xl bg-[#F8E7EA] text-[#D65B78] border border-[#D65B78]/30 active:scale-95 transition-transform shrink-0 shadow-sm text-xs font-bold"
+                className="hidden sm:flex xl:hidden items-center space-x-1.5 h-10 sm:h-11 px-3.5 rounded-xl bg-[#F8E7EA] text-[#D65B78] border border-[#D65B78]/20 hover:border-[#D65B78]/40 shadow-sm hover:shadow active:scale-95 transition-all duration-150 shrink-0 text-xs font-bold cursor-pointer select-none"
               >
                 <Cake className="w-4 h-4 text-[#D65B78]" />
-                <span>Custom Cake</span>
+                <span>{t('nav.custom_cake')}</span>
               </button>
 
               {/* Order Tracking Button */}
               <button
+                type="button"
                 onClick={onOpenOrdersTrack}
                 title={t('nav.track')}
-                className="w-10 h-10 sm:h-11 sm:w-11 rounded-2xl bg-white border border-[#2B1810]/10 text-[#6B5B52] hover:text-[#2B1810] hover:bg-[#F8E7EA] active:scale-95 transition-all shadow-sm shrink-0 flex items-center justify-center"
+                className="h-10 w-10 sm:h-11 sm:w-11 rounded-xl bg-white border border-[#2B1810]/15 hover:border-[#CBB279] text-[#5A4A42] hover:text-[#2B1810] shadow-sm hover:shadow active:scale-95 transition-all duration-150 shrink-0 flex items-center justify-center cursor-pointer select-none"
               >
                 <Clock className="w-5 h-5" />
               </button>
 
               {/* Cart Trigger Button */}
               <button
+                type="button"
                 onClick={toggleCart}
                 title={t('nav.cart')}
-                className="relative w-10 h-10 sm:h-11 sm:w-auto sm:px-4 rounded-2xl bg-[#2B1810] hover:bg-[#3D2318] text-[#FAF6F0] shadow-md hover:shadow-lg active:scale-95 transition-all border border-[#CBB279]/40 shrink-0 flex items-center justify-center space-x-2"
+                className="relative h-10 sm:h-11 px-3 sm:px-4 rounded-xl bg-[#2B1810] hover:bg-[#3D2318] text-[#FAF6F0] shadow-sm hover:shadow-md active:scale-95 transition-all duration-150 border border-[#2B1810] shrink-0 flex items-center justify-center space-x-2 cursor-pointer select-none"
               >
-                <ShoppingBag className="w-5 h-5 text-[#D65B78] shrink-0" />
+                <ShoppingBag className="w-4 h-4 sm:w-5 sm:h-5 text-[#D65B78] shrink-0" />
                 
                 <div className="hidden sm:flex flex-col text-left leading-tight">
                   <span className="text-[10px] text-[#CBB279] font-bold uppercase tracking-wider">
                     {t('nav.cart')}
                   </span>
-                  <span className="text-xs font-extrabold">
+                  <span className="text-xs font-extrabold text-white">
                     {formatUZS(totalAmount)}
                   </span>
                 </div>
                 
                 {totalCount > 0 && (
-                  <span className="absolute -top-1 -right-1 sm:static bg-[#D65B78] text-white text-[10px] sm:text-xs font-bold w-4 h-4 sm:w-5 sm:h-5 rounded-full flex items-center justify-center border border-[#2B1810] sm:border-none animate-bounce shrink-0">
+                  <span className="absolute -top-1 -right-1 sm:static bg-[#D65B78] text-white text-[10px] sm:text-xs font-bold w-4 h-4 sm:w-5 sm:h-5 rounded-full flex items-center justify-center border border-[#2B1810] sm:border-none shrink-0">
                     {totalCount}
                   </span>
                 )}
@@ -156,8 +162,9 @@ export const Header: React.FC<HeaderProps> = ({
 
               {/* Mobile / iPad Hamburger Menu Button */}
               <button
+                type="button"
                 onClick={() => setIsMobileMenuOpen(true)}
-                className="xl:hidden w-10 h-10 rounded-2xl bg-[#FAF6F0] border border-[#2B1810]/15 text-[#2B1810] flex items-center justify-center active:scale-95 transition-transform"
+                className="xl:hidden h-10 w-10 sm:h-11 sm:w-11 rounded-xl bg-white border border-[#2B1810]/15 text-[#2B1810] flex items-center justify-center shadow-sm hover:shadow active:scale-95 transition-all duration-150 cursor-pointer select-none"
                 aria-label={t('nav.menu')}
               >
                 <Menu className="w-5 h-5" />

@@ -11,10 +11,13 @@ export const useCustomCakes = () => {
     queryKey: ['custom-cakes'],
     queryFn: async () => {
       try {
-        const response = await apiClient.get<ApiResponse<CustomCakeRequest[]>>(
+        const response = await apiClient.get<any>(
           ENDPOINTS.CUSTOM_CAKES.BASE
         );
-        return response.data.data || [];
+        const data = Array.isArray(response.data)
+          ? response.data
+          : (Array.isArray(response.data?.data) ? response.data.data : []);
+        return data;
       } catch (err) {
         return MOCK_CUSTOM_CAKES;
       }
@@ -25,6 +28,7 @@ export const useCustomCakes = () => {
     enabled: !!localStorage.getItem('dinora_admin_token'),
   });
 };
+
 
 export const useUpdateCustomCakeStatus = () => {
   const queryClient = useQueryClient();

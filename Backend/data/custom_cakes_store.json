@@ -1,5 +1,51 @@
 [
   {
+    "id": "cust-1788429889801-198",
+    "requestNumber": 2,
+    "userId": "usr-901234567",
+    "telegramId": 901234567,
+    "referenceImageUrl": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==",
+    "referenceImages": [
+      "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=="
+    ],
+    "photos": [
+      "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=="
+    ],
+    "description": "🎂 Shakli: Dumaloq | 📐 Qavatlar: 1 qavat | 🍰 Korj: Biskvit | 🥛 Krem: Slivki | 🍓 Nachinka: Banan | ✍️ Yozuv: \"Tabrik\"",
+    "customDetails": {
+      "shape": "Dumaloq",
+      "layers": "1 qavat",
+      "base": "Biskvit",
+      "cream": "Slivki",
+      "filling": "Banan",
+      "customText": "Tabrik"
+    },
+    "phone": "+998 90 123 45 67",
+    "customerName": "Test Mijoz",
+    "deliveryType": "DELIVERY",
+    "deliveryRegion": "Sirdaryo tumani",
+    "addressDetails": null,
+    "deliveryAddress": "Sirdaryo t., Yangi hayot ko`chasi 12",
+    "deliveryDate": null,
+    "latitude": null,
+    "longitude": null,
+    "distanceKm": null,
+    "deliveryFee": null,
+    "estimatedPrice": 350000,
+    "status": "PRICE_OFFERED",
+    "adminNotes": "Maxsus yong`oqlar va shokoladli bezak bilan",
+    "createdAt": "2026-09-03T10:04:49.801Z",
+    "updatedAt": "2026-09-03T10:04:51.643Z",
+    "user": {
+      "id": "usr-901234567",
+      "firstName": "Test Mijoz",
+      "lastName": "",
+      "username": "",
+      "phone": "+998 90 123 45 67",
+      "telegramId": 901234567
+    }
+  },
+  {
     "id": "cust-1788002682664-633",
     "requestNumber": 1,
     "userId": "usr-7354176053",

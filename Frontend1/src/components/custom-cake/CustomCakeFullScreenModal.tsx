@@ -299,7 +299,7 @@ export const CustomCakeFullScreenModal: React.FC<CustomCakeFullScreenModalProps>
           customText: customText.trim() || undefined,
         },
         referenceImages: images,
-        phone,
+        phone: phone.trim(),
         deliveryType,
         deliveryAddress: deliveryType === 'DELIVERY' ? deliveryAddress || 'GPS manzil orqali' : 'Do\'kondan olib ketish',
         latitude: coords?.latitude,
@@ -311,12 +311,14 @@ export const CustomCakeFullScreenModal: React.FC<CustomCakeFullScreenModalProps>
 
       triggerSuccessHaptic();
       setSubmittedRequest(res);
-    } catch (err) {
-      alert("Buyurtma yuborishda xatolik yuz berdi. Qaytadan urinib ko'ring.");
+    } catch (err: any) {
+      const errorMsg = err?.response?.data?.message || err?.message || "Buyurtma yuborishda xatolik yuz berdi. Qaytadan urinib ko'ring.";
+      alert(errorMsg);
     } finally {
       setIsSubmitting(false);
     }
   };
+
 
   const stepTitles = [
     'Shakli',

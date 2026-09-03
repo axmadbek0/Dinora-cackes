@@ -30,30 +30,30 @@ export const Header: React.FC<HeaderProps> = ({
 
   return (
     <>
-      <header className="sticky top-0 z-40 bg-[#FAF6F0]/95 backdrop-blur-md border-b border-[#2B1810]/10 transition-all">
-        <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16 sm:h-20">
+      <header className="sticky top-0 z-40 bg-[#FAF6F0]/95 backdrop-blur-md border-b border-[#2B1810]/10 transition-all select-none">
+        <div className="max-w-7xl mx-auto px-2 xs:px-3 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-14 xs:h-16 sm:h-20 gap-1.5 xs:gap-2">
             
             {/* Brand Logo & Title */}
             <div 
               onClick={() => onNavigateSection('catalog')}
-              className="flex items-center space-x-2 sm:space-x-3 cursor-pointer group shrink-0 active:scale-95 transition-all duration-150 select-none"
+              className="flex items-center space-x-1.5 xs:space-x-2 sm:space-x-3 cursor-pointer group shrink min-w-0 active:scale-95 transition-all duration-150 select-none touch-manipulation"
             >
               <img
                 src="/logatip.jpg"
                 alt="DINORA Logo"
-                className="w-9 h-9 sm:w-11 sm:h-11 rounded-full object-cover shadow-md group-hover:scale-105 transition-transform duration-300 border-2 border-[#CBB279] shrink-0"
+                className="w-7 h-7 2xs:w-8 2xs:h-8 xs:w-9 xs:h-9 sm:w-11 sm:h-11 rounded-full object-cover shadow-md group-hover:scale-105 transition-transform duration-300 border-2 border-[#CBB279] shrink-0"
               />
-              <div className="min-w-0">
-                <div className="flex items-center space-x-1.5 sm:space-x-2">
-                  <span className="font-serif text-lg sm:text-2xl font-bold tracking-tight text-[#2B1810] leading-none">
+              <div className="min-w-0 flex flex-col justify-center">
+                <div className="flex items-center space-x-1 sm:space-x-2">
+                  <span className="font-serif text-sm 2xs:text-base xs:text-lg sm:text-2xl font-bold tracking-tight text-[#2B1810] leading-none truncate">
                     DINORA
                   </span>
-                  <span className="hidden xs:inline-block text-[9px] sm:text-xs uppercase tracking-widest px-2 py-0.5 rounded-full bg-[#F8E7EA] text-[#D65B78] font-bold shrink-0">
+                  <span className="hidden sm:inline-block text-[9px] sm:text-xs uppercase tracking-widest px-2 py-0.5 rounded-full bg-[#F8E7EA] text-[#D65B78] font-bold shrink-0">
                     Pastry & Art
                   </span>
                 </div>
-                <p className="font-serif italic text-[10px] sm:text-xs text-[#CBB279] tracking-wide truncate max-w-[120px] sm:max-w-none mt-0.5">
+                <p className="hidden min-[360px]:block font-serif italic text-[9px] xs:text-[10px] sm:text-xs text-[#CBB279] tracking-wide truncate max-w-[85px] xs:max-w-[130px] sm:max-w-none mt-0.5 leading-tight">
                   Ta'm san'atga aylansa...
                 </p>
               </div>
@@ -98,15 +98,15 @@ export const Header: React.FC<HeaderProps> = ({
               </button>
             </nav>
 
-            {/* Right Actions Group */}
-            <div className="flex items-center space-x-2 sm:space-x-3 shrink-0">
+            {/* Right Actions Group (Ultra-responsive without clipping) */}
+            <div className="flex items-center gap-1 xs:gap-1.5 sm:gap-2.5 shrink-0">
               
               {/* Language Selector */}
               <LanguageSelector />
 
               {/* Telegram User Greeting Badge */}
               {isTelegram && user && (
-                <div className="hidden 2xl:flex items-center space-x-2 bg-[#F8E7EA] px-3 py-1.5 rounded-full border border-[#D65B78]/20">
+                <div className="hidden 2xl:flex items-center space-x-2 bg-[#F8E7EA] px-3 py-1.5 rounded-full border border-[#D65B78]/20 shrink-0">
                   <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping" />
                   <span className="text-xs font-semibold text-[#2B1810]">
                     {user.first_name}
@@ -119,7 +119,7 @@ export const Header: React.FC<HeaderProps> = ({
                 type="button"
                 onClick={onOpenCustomCake}
                 title={t('nav.custom_cake')}
-                className="hidden sm:flex xl:hidden items-center space-x-1.5 h-10 sm:h-11 px-3.5 rounded-xl bg-[#F8E7EA] text-[#D65B78] border border-[#D65B78]/20 hover:border-[#D65B78]/40 shadow-sm hover:shadow active:scale-95 transition-all duration-150 shrink-0 text-xs font-bold cursor-pointer select-none"
+                className="hidden sm:flex xl:hidden items-center space-x-1.5 h-10 sm:h-11 px-3.5 rounded-xl bg-[#F8E7EA] text-[#D65B78] border border-[#D65B78]/20 hover:border-[#D65B78]/40 shadow-sm hover:shadow active:scale-95 transition-all duration-150 shrink-0 text-xs font-bold cursor-pointer select-none touch-manipulation"
               >
                 <Cake className="w-4 h-4 text-[#D65B78]" />
                 <span>{t('nav.custom_cake')}</span>
@@ -130,9 +130,10 @@ export const Header: React.FC<HeaderProps> = ({
                 type="button"
                 onClick={onOpenOrdersTrack}
                 title={t('nav.track')}
-                className="h-10 w-10 sm:h-11 sm:w-11 rounded-xl bg-white border border-[#2B1810]/15 hover:border-[#CBB279] text-[#5A4A42] hover:text-[#2B1810] shadow-sm hover:shadow active:scale-95 transition-all duration-150 shrink-0 flex items-center justify-center cursor-pointer select-none"
+                className="h-8 w-8 xs:h-9 xs:w-9 sm:h-11 sm:w-11 rounded-lg sm:rounded-xl bg-white border border-[#2B1810]/15 hover:border-[#CBB279] text-[#5A4A42] hover:text-[#2B1810] shadow-sm hover:shadow active:scale-95 transition-all duration-150 shrink-0 flex items-center justify-center cursor-pointer select-none touch-manipulation"
+                aria-label={t('nav.track')}
               >
-                <Clock className="w-5 h-5" />
+                <Clock className="w-3.5 h-3.5 xs:w-4 xs:h-4 sm:w-5 sm:h-5" />
               </button>
 
               {/* Cart Trigger Button */}
@@ -140,9 +141,10 @@ export const Header: React.FC<HeaderProps> = ({
                 type="button"
                 onClick={toggleCart}
                 title={t('nav.cart')}
-                className="relative h-10 sm:h-11 px-3 sm:px-4 rounded-xl bg-[#2B1810] hover:bg-[#3D2318] text-[#FAF6F0] shadow-sm hover:shadow-md active:scale-95 transition-all duration-150 border border-[#2B1810] shrink-0 flex items-center justify-center space-x-2 cursor-pointer select-none"
+                className="relative h-8 px-2 xs:h-9 xs:px-2.5 sm:h-11 sm:px-4 rounded-lg sm:rounded-xl bg-[#2B1810] hover:bg-[#3D2318] text-[#FAF6F0] shadow-sm hover:shadow-md active:scale-95 transition-all duration-150 border border-[#2B1810] shrink-0 flex items-center justify-center space-x-1.5 sm:space-x-2 cursor-pointer select-none touch-manipulation"
+                aria-label={t('nav.cart')}
               >
-                <ShoppingBag className="w-4 h-4 sm:w-5 sm:h-5 text-[#D65B78] shrink-0" />
+                <ShoppingBag className="w-3.5 h-3.5 xs:w-4 xs:h-4 sm:w-5 sm:h-5 text-[#D65B78] shrink-0" />
                 
                 <div className="hidden sm:flex flex-col text-left leading-tight">
                   <span className="text-[10px] text-[#CBB279] font-bold uppercase tracking-wider">
@@ -154,8 +156,8 @@ export const Header: React.FC<HeaderProps> = ({
                 </div>
                 
                 {totalCount > 0 && (
-                  <span className="absolute -top-1 -right-1 sm:static bg-[#D65B78] text-white text-[10px] sm:text-xs font-bold w-4 h-4 sm:w-5 sm:h-5 rounded-full flex items-center justify-center border border-[#2B1810] sm:border-none shrink-0">
-                    {totalCount}
+                  <span className="absolute -top-1 -right-1 sm:static bg-[#D65B78] text-white text-[9px] xs:text-[10px] sm:text-xs font-bold w-4 h-4 sm:w-5 sm:h-5 rounded-full flex items-center justify-center border border-[#2B1810] sm:border-none shrink-0">
+                    {totalCount > 99 ? '99+' : totalCount}
                   </span>
                 )}
               </button>
@@ -164,10 +166,10 @@ export const Header: React.FC<HeaderProps> = ({
               <button
                 type="button"
                 onClick={() => setIsMobileMenuOpen(true)}
-                className="xl:hidden h-10 w-10 sm:h-11 sm:w-11 rounded-xl bg-white border border-[#2B1810]/15 text-[#2B1810] flex items-center justify-center shadow-sm hover:shadow active:scale-95 transition-all duration-150 cursor-pointer select-none"
+                className="xl:hidden h-8 w-8 xs:h-9 xs:w-9 sm:h-11 sm:w-11 rounded-lg sm:rounded-xl bg-white border border-[#2B1810]/15 text-[#2B1810] flex items-center justify-center shadow-sm hover:shadow active:scale-95 transition-all duration-150 cursor-pointer select-none shrink-0 touch-manipulation"
                 aria-label={t('nav.menu')}
               >
-                <Menu className="w-5 h-5" />
+                <Menu className="w-4 h-4 sm:w-5 sm:h-5" />
               </button>
 
             </div>

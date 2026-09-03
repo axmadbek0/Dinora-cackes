@@ -50,23 +50,23 @@ export const OnlineVisitorsBadge: React.FC<{ variant?: 'header' | 'hero' }> = ({
 
   if (variant === 'hero') {
     return (
-      <div className="inline-flex items-center space-x-2 bg-white/90 backdrop-blur-md px-3.5 py-1.5 rounded-full border border-emerald-200 shadow-sm text-xs font-bold text-emerald-900">
-        <span className="relative flex h-2.5 w-2.5">
+      <div className="inline-flex items-center space-x-1.5 xs:space-x-2 bg-white/90 backdrop-blur-md px-2.5 py-1 xs:px-3.5 xs:py-1.5 rounded-full border border-emerald-200 shadow-sm text-[10px] 2xs:text-[11px] xs:text-xs font-bold text-emerald-900 max-w-full">
+        <span className="relative flex h-2 w-2 xs:h-2.5 xs:w-2.5 shrink-0">
           <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-          <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500" />
+          <span className="relative inline-flex rounded-full h-2 w-2 xs:h-2.5 xs:w-2.5 bg-emerald-500" />
         </span>
-        <span>
-          {count} {count === 1 ? 'foydalanuvchi' : 'nafar foydalanuvchi'} ayni vaqtda onlayn
+        <span className="truncate">
+          {count} {count === 1 ? 'foydalanuvchi' : 'nafar'} onlayn
         </span>
       </div>
     );
   }
 
   return (
-    <div className="inline-flex items-center space-x-1.5 bg-emerald-50 text-emerald-800 text-[11px] font-bold px-2.5 py-1 rounded-full border border-emerald-200 shadow-xs">
-      <span className="relative flex h-2 w-2">
+    <div className="inline-flex items-center space-x-1 xs:space-x-1.5 bg-emerald-50 text-emerald-800 text-[9px] xs:text-[10px] sm:text-[11px] font-bold px-2 py-0.5 xs:px-2.5 xs:py-1 rounded-full border border-emerald-200 shadow-xs shrink-0">
+      <span className="relative flex h-1.5 w-1.5 xs:h-2 xs:w-2 shrink-0">
         <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-        <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
+        <span className="relative inline-flex rounded-full h-1.5 w-1.5 xs:h-2 xs:w-2 bg-emerald-500" />
       </span>
       <span>{count} onlayn</span>
     </div>

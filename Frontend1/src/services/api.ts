@@ -151,9 +151,22 @@ export const fetchUserOrders = async (phoneOrTelegramId?: string): Promise<Order
 
 export const createCustomCake = async (payload: CreateCustomCakePayload): Promise<CustomCakeOrder> => {
   try {
+    const imagesList = payload.referenceImages || [];
     const apiPayload = {
-      ...payload,
-      referenceImageUrl: payload.referenceImages?.[0] || undefined,
+      description: payload.description,
+      customDetails: payload.customDetails,
+      referenceImages: imagesList,
+      referenceImageUrl: imagesList.length > 0 ? imagesList[0] : undefined,
+      phone: payload.phone,
+      customerPhone: payload.phone,
+      deliveryType: payload.deliveryType || 'DELIVERY',
+      deliveryAddress: payload.deliveryAddress || undefined,
+      latitude: payload.latitude ?? undefined,
+      longitude: payload.longitude ?? undefined,
+      distanceKm: payload.distanceKm ?? undefined,
+      deliveryFee: payload.deliveryFee ?? undefined,
+      telegramId: payload.telegramId ?? undefined,
+      desiredWeightKg: payload.desiredWeightKg ?? undefined,
     };
     const response = await apiClient.post<any>('/custom-cakes', apiPayload);
     const data = response.data?.data || response.data;
@@ -161,27 +174,10 @@ export const createCustomCake = async (payload: CreateCustomCakePayload): Promis
     throw new Error('Invalid response from server');
   } catch (error: any) {
     console.error('[DINORA API] Custom cake creation error:', error?.response?.data || error);
-    const newCustomCake: CustomCakeOrder = {
-      id: `cust-${Date.now().toString().slice(-4)}`,
-      requestNumber: Math.floor(500 + Math.random() * 500),
-      description: payload.description,
-      customDetails: payload.customDetails,
-      referenceImages: payload.referenceImages,
-      phone: payload.phone,
-      deliveryType: payload.deliveryType,
-      deliveryAddress: payload.deliveryAddress || null,
-      latitude: payload.latitude || null,
-      longitude: payload.longitude || null,
-      distanceKm: payload.distanceKm || null,
-      deliveryFee: payload.deliveryFee || null,
-      status: 'PENDING_PRICING',
-      estimatedPrice: null,
-      createdAt: new Date().toISOString(),
-    };
-    mockCustomCakes.unshift(newCustomCake);
-    return newCustomCake;
+    throw error;
   }
 };
+
 
 export const uploadOrderReceipt = async (orderId: string, receiptPhoto: string): Promise<Order> => {
   try {

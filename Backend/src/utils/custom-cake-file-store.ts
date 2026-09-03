@@ -43,27 +43,34 @@ export class CustomCakeFileStore {
   static createRequest(data: any): any {
     const requests = this.getRequests();
     const requestNumber = data.requestNumber || this.getNextRequestNumber();
-    const telegramId = data.telegramId || data.user?.telegramId || (data.userId && data.userId.startsWith('usr-') ? data.userId.replace('usr-', '') : null);
+    const telegramId = data.telegramId || data.user?.telegramId || (data.userId && String(data.userId).startsWith('usr-') ? String(data.userId).replace('usr-', '') : null);
+    
+    const photosList = data.photos || data.referenceImages || (data.referenceImageUrl ? [data.referenceImageUrl] : []);
+    const refImgUrl = data.referenceImageUrl || (photosList.length > 0 ? photosList[0] : null);
+    const customerPhone = data.phone || data.user?.phone || data.customerPhone || null;
+    const customerName = data.customerName || data.firstName || data.user?.firstName || 'Mijoz';
+
     const newRequest = {
       id: data.id || `cust-${Date.now()}-${Math.floor(100 + Math.random() * 900)}`,
       requestNumber,
       userId: data.userId || (telegramId ? `usr-${telegramId}` : `usr-${Date.now()}`),
       telegramId: telegramId ? Number(telegramId) : null,
-      referenceImageUrl: data.referenceImageUrl || (data.referenceImages?.[0] || null),
-      referenceImages: data.referenceImages || (data.referenceImageUrl ? [data.referenceImageUrl] : []),
+      referenceImageUrl: refImgUrl,
+      referenceImages: photosList,
+      photos: photosList,
       description: data.description || '',
       customDetails: data.customDetails || null,
-      phone: data.phone || data.user?.phone || null,
-      customerName: data.customerName || data.firstName || data.user?.firstName || 'Mijoz',
+      phone: customerPhone,
+      customerName: customerName,
       deliveryType: data.deliveryType || 'DELIVERY',
       deliveryRegion: data.deliveryRegion || 'Sirdaryo tumani',
       addressDetails: data.addressDetails || null,
       deliveryAddress: data.deliveryAddress || null,
       deliveryDate: data.deliveryDate || null,
-      latitude: typeof data.latitude === 'number' ? data.latitude : (data.latitude ? parseFloat(data.latitude) : null),
-      longitude: typeof data.longitude === 'number' ? data.longitude : (data.longitude ? parseFloat(data.longitude) : null),
-      distanceKm: typeof data.distanceKm === 'number' ? data.distanceKm : (data.distanceKm ? parseFloat(data.distanceKm) : null),
-      deliveryFee: typeof data.deliveryFee === 'number' ? data.deliveryFee : (data.deliveryFee ? parseFloat(data.deliveryFee) : null),
+      latitude: typeof data.latitude === 'number' ? data.latitude : (data.latitude ? parseFloat(String(data.latitude)) : null),
+      longitude: typeof data.longitude === 'number' ? data.longitude : (data.longitude ? parseFloat(String(data.longitude)) : null),
+      distanceKm: typeof data.distanceKm === 'number' ? data.distanceKm : (data.distanceKm ? parseFloat(String(data.distanceKm)) : null),
+      deliveryFee: typeof data.deliveryFee === 'number' ? data.deliveryFee : (data.deliveryFee ? parseFloat(String(data.deliveryFee)) : null),
       estimatedPrice: data.estimatedPrice || null,
       status: data.status || 'PENDING_PRICING',
       adminNotes: data.adminNotes || null,
@@ -71,10 +78,10 @@ export class CustomCakeFileStore {
       updatedAt: new Date().toISOString(),
       user: {
         id: data.userId || (telegramId ? `usr-${telegramId}` : `usr-${Date.now()}`),
-        firstName: data.customerName || data.firstName || data.user?.firstName || 'Mijoz',
+        firstName: customerName,
         lastName: data.lastName || data.user?.lastName || '',
         username: data.username || data.user?.username || '',
-        phone: data.phone || data.user?.phone || '',
+        phone: customerPhone,
         telegramId: telegramId ? Number(telegramId) : null,
       },
     };
@@ -155,3 +162,4 @@ export class CustomCakeFileStore {
     throw new Error(`Custom cake request ${id} not found in store`);
   }
 }
+

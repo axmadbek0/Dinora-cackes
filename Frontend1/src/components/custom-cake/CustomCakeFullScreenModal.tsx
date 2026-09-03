@@ -309,6 +309,7 @@ export const CustomCakeFullScreenModal: React.FC<CustomCakeFullScreenModalProps>
         telegramId: user?.id,
       });
 
+      localStorage.setItem('dinora_user_phone', phone.trim());
       triggerSuccessHaptic();
       setSubmittedRequest(res);
     } catch (err: any) {
@@ -318,6 +319,7 @@ export const CustomCakeFullScreenModal: React.FC<CustomCakeFullScreenModalProps>
       setIsSubmitting(false);
     }
   };
+
 
 
   const stepTitles = [

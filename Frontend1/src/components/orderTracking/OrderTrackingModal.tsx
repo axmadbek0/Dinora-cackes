@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { fetchUserOrders, rateOrder } from '../../services/api';
+import { fetchUserOrders, fetchUserCustomCakes, rateOrder } from '../../services/api';
 import type { Order, OrderStatus } from '../../types';
-import { formatUZS, formatDate } from '../../utils/formatters';
+import { formatUZS, formatDate, formatUzbekPhoneInput } from '../../utils/formatters';
 import { triggerHaptic, triggerSuccessHaptic } from '../../utils/haptics';
 import {
   X,
@@ -103,9 +103,11 @@ const STATUS_STEPS: StatusStepConfig[] = [
 
 export const OrderTrackingModal: React.FC<OrderTrackingModalProps> = ({ isOpen, onClose }) => {
   const [phoneQuery, setPhoneQuery] = useState(() => {
-    return localStorage.getItem('dinora_user_phone') || '';
+    const saved = localStorage.getItem('dinora_user_phone');
+    return saved ? formatUzbekPhoneInput(saved) : '+998';
   });
   const [orders, setOrders] = useState<Order[]>([]);
+  const [customCakes, setCustomCakes] = useState<any[]>([]);
   const [hasSearched, setHasSearched] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -136,8 +138,12 @@ export const OrderTrackingModal: React.FC<OrderTrackingModalProps> = ({ isOpen, 
     else setIsRefreshing(true);
 
     try {
-      const data = await fetchUserOrders(query.trim());
-      setOrders(data || []);
+      const [ordersData, cakesData] = await Promise.all([
+        fetchUserOrders(query.trim()),
+        fetchUserCustomCakes(query.trim()),
+      ]);
+      setOrders(ordersData || []);
+      setCustomCakes(cakesData || []);
       setHasSearched(true);
     } catch (e) {
       // Ignore
@@ -168,18 +174,23 @@ export const OrderTrackingModal: React.FC<OrderTrackingModalProps> = ({ isOpen, 
   if (!isOpen) return null;
 
   const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const numericOnly = e.target.value.replace(/[^0-9+]/g, '');
-    setPhoneQuery(numericOnly);
+    const formatted = formatUzbekPhoneInput(e.target.value);
+    setPhoneQuery(formatted);
   };
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!phoneQuery.trim()) return;
+    const cleanDigits = phoneQuery.replace(/\D/g, '');
+    if (cleanDigits.length < 9) {
+      alert("Iltimos, to'liq telefon raqam kiriting (masalan: +998 90 123 45 67)");
+      return;
+    }
 
     triggerHaptic('medium');
     localStorage.setItem('dinora_user_phone', phoneQuery.trim());
     await loadOrders(phoneQuery.trim());
   };
+
 
   const handleOpenRating = (order: Order) => {
     triggerHaptic('medium');
@@ -299,12 +310,14 @@ export const OrderTrackingModal: React.FC<OrderTrackingModalProps> = ({ isOpen, 
                 <form onSubmit={handleSearch} className="flex flex-col sm:flex-row gap-2 pt-2 border-t border-[#2B1810]/10">
                   <input
                     type="tel"
-                    inputMode="tel"
+                    inputMode="numeric"
+                    maxLength={17}
                     value={phoneQuery}
                     onChange={handlePhoneChange}
                     placeholder="+998 90 123 45 67"
-                    className="flex-1 min-h-[44px] p-3 bg-white border border-[#2B1810]/10 rounded-xl text-xs sm:text-sm text-[#2B1810] font-bold focus:outline-none focus:ring-2 focus:ring-[#D65B78] touch-manipulation"
+                    className="flex-1 min-h-[44px] p-3 bg-white border border-[#2B1810]/10 rounded-xl text-xs sm:text-sm text-[#2B1810] font-bold tracking-wide focus:outline-none focus:ring-2 focus:ring-[#D65B78] touch-manipulation"
                   />
+
                   <button
                     type="submit"
                     disabled={isLoading}
@@ -319,12 +332,12 @@ export const OrderTrackingModal: React.FC<OrderTrackingModalProps> = ({ isOpen, 
 
             {/* Orders Timeline Results */}
             <div className="space-y-5">
-              {isLoading && orders.length === 0 ? (
+              {isLoading && orders.length === 0 && customCakes.length === 0 ? (
                 <div className="text-center py-12 space-y-3">
                   <div className="w-8 h-8 border-3 border-[#D65B78] border-t-transparent rounded-full animate-spin mx-auto" />
                   <p className="text-xs font-bold text-[#6B5B52]">Buyurtmalar yuklanmoqda...</p>
                 </div>
-              ) : orders.length === 0 ? (
+              ) : orders.length === 0 && customCakes.length === 0 ? (
                 hasSearched && (
                   <div className="text-center py-10 bg-[#FAF6F0] rounded-3xl border border-[#2B1810]/10 p-6 space-y-2">
                     <AlertCircle className="w-10 h-10 text-amber-500 mx-auto" />
@@ -333,13 +346,172 @@ export const OrderTrackingModal: React.FC<OrderTrackingModalProps> = ({ isOpen, 
                     </h3>
                     <p className="text-xs text-[#6B5B52] max-w-sm mx-auto">
                       {phoneQuery
-                        ? `Kiritilgan ${phoneQuery} telefon raqami bo'yicha buyurtma mavjud emas.`
+                        ? `Kiritilgan ${phoneQuery} telefon raqami bo'yicha aktiv buyurtma mavjud emas.`
                         : "Hozircha sizda faol buyurtmalar mavjud emas. Menyudan shirinlik tanlab buyurtma bering!"}
                     </p>
                   </div>
                 )
               ) : (
-                orders.map((order) => {
+                <>
+                  {/* Custom Cake Orders Section */}
+                  {customCakes.length > 0 && (
+                    <div className="space-y-4">
+                      <div className="flex items-center space-x-2 px-1">
+                        <Sparkles className="w-4 h-4 text-[#D4AF37]" />
+                        <h3 className="text-xs font-extrabold uppercase tracking-wider text-[#2B1810]">
+                          ✨ Maxsus Tort So'rovlari ("O'zim xohlaganimdek") ({customCakes.length})
+                        </h3>
+                      </div>
+
+                      {customCakes.map((cake) => {
+                        const isPending = cake.status === 'PENDING_PRICING';
+                        const isOffered = cake.status === 'PRICE_OFFERED';
+                        const isAccepted = cake.status === 'ACCEPTED';
+                        const isCompleted = cake.status === 'COMPLETED';
+                        const photos = cake.photos || cake.referenceImages || (cake.referenceImageUrl ? [cake.referenceImageUrl] : []);
+
+                        return (
+                          <div key={cake.id} className="bg-white rounded-3xl border border-[#2B1810]/10 shadow-sm p-4 sm:p-6 space-y-4">
+                            {/* Header */}
+                            <div className="flex flex-wrap items-start justify-between gap-2 border-b border-[#2B1810]/10 pb-3">
+                              <div className="space-y-1">
+                                <div className="flex items-center space-x-2">
+                                  <span className="text-xs sm:text-sm font-extrabold text-[#D65B78] uppercase tracking-wider font-serif">
+                                    Maxsus Tort #{cake.requestNumber}
+                                  </span>
+                                  <span className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full border ${
+                                    cake.deliveryType === 'PICKUP'
+                                      ? 'bg-amber-50 text-amber-800 border-amber-200'
+                                      : 'bg-blue-50 text-blue-800 border-blue-200'
+                                  }`}>
+                                    {cake.deliveryType === 'PICKUP' ? '🏪 Olib ketish' : '🛍️ Yetkazish'}
+                                  </span>
+                                </div>
+                                <span className="text-[11px] text-[#6B5B52] block">
+                                  Vaqti: {formatDate(cake.createdAt)}
+                                </span>
+                              </div>
+
+                              <div className="text-right">
+                                <span className="text-[10px] text-[#6B5B52] block uppercase font-medium">Holat / Narx</span>
+                                {cake.estimatedPrice ? (
+                                  <span className="text-sm sm:text-base font-extrabold text-emerald-700 font-serif">
+                                    {formatUZS(cake.estimatedPrice)}
+                                  </span>
+                                ) : (
+                                  <span className="text-xs font-extrabold text-amber-700">
+                                    ⏳ Narx hisoblanmoqda
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+
+                            {/* Status Banner */}
+                            {isPending && (
+                              <div className="bg-gradient-to-r from-amber-500/10 via-amber-500/20 to-amber-500/10 border-2 border-amber-400 p-4 rounded-2xl flex items-start space-x-3 shadow-sm">
+                                <Clock className="w-5 h-5 text-amber-600 shrink-0 mt-0.5 animate-pulse" />
+                                <div className="text-xs space-y-1">
+                                  <strong className="text-amber-950 font-bold block">
+                                    Konditerimiz buyurtmangizni ko'rib chiqmoqda!
+                                  </strong>
+                                  <p className="text-amber-900">
+                                    Siz tanlagan masalliqlar va bezak bo'yicha narx hisoblanmoqda. Tez orada Telegram bot yoki telefon orqali narx ma'lum qilinadi.
+                                  </p>
+                                </div>
+                              </div>
+                            )}
+
+                            {isOffered && (
+                              <div className="bg-gradient-to-r from-emerald-500/10 via-emerald-500/20 to-emerald-500/10 border-2 border-emerald-500 p-4 rounded-2xl flex items-start space-x-3 shadow-sm">
+                                <Sparkles className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />
+                                <div className="text-xs space-y-1">
+                                  <strong className="text-emerald-950 font-bold block">
+                                    💰 Narx belgilandi: {formatUZS(cake.estimatedPrice)}
+                                  </strong>
+                                  {cake.adminNotes && (
+                                    <p className="text-emerald-900 italic">
+                                      Admin izohi: "{cake.adminNotes}"
+                                    </p>
+                                  )}
+                                  <p className="text-emerald-800 text-[11px]">
+                                    Telegram botingizga tasdiqlash xabari yuborilgan.
+                                  </p>
+                                </div>
+                              </div>
+                            )}
+
+                            {isAccepted && (
+                              <div className="bg-blue-50 border-2 border-blue-400 p-4 rounded-2xl flex items-start space-x-3">
+                                <CheckCircle2 className="w-5 h-5 text-blue-600 shrink-0 mt-0.5" />
+                                <div className="text-xs space-y-1 text-blue-950">
+                                  <strong className="font-bold block">
+                                    ✅ Buyurtma qabul qilindi va tayyorlanmoqda!
+                                  </strong>
+                                  <p className="text-blue-900">
+                                    Konditerimiz maxsus tortingizni mehr bilan tayyorlamoqda.
+                                  </p>
+                                </div>
+                              </div>
+                            )}
+
+                            {isCompleted && (
+                              <div className="bg-emerald-50 border-2 border-emerald-500 p-4 rounded-2xl flex items-start space-x-3">
+                                <Package className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />
+                                <div className="text-xs space-y-1 text-emerald-950">
+                                  <strong className="font-bold block">
+                                    🎉 Maxsus tortingiz tayyor bo'ldi!
+                                  </strong>
+                                  <p className="text-emerald-900">
+                                    {cake.deliveryType === 'PICKUP'
+                                      ? "Do'konimizdan olib ketishingiz mumkin!"
+                                      : "Kuryerimiz yetkazib topshirdi. Yoqimli ishtaha!"}
+                                  </p>
+                                </div>
+                              </div>
+                            )}
+
+                            {/* Details summary */}
+                            <div className="bg-[#FAF6F0] p-3.5 rounded-2xl border border-[#2B1810]/5 text-xs text-[#2B1810] space-y-1.5">
+                              {cake.customDetails ? (
+                                <div className="grid grid-cols-2 gap-1.5">
+                                  {cake.customDetails.shape && <p><strong>⭕️ Shakl:</strong> {cake.customDetails.shape}</p>}
+                                  {cake.customDetails.layers && <p><strong>🎂 Qavat:</strong> {cake.customDetails.layers}</p>}
+                                  {cake.customDetails.base && <p><strong>🍰 Baza:</strong> {cake.customDetails.base}</p>}
+                                  {cake.customDetails.cream && <p><strong>🥛 Krem:</strong> {cake.customDetails.cream}</p>}
+                                  {cake.customDetails.filling && <p><strong>🍓 Nachinka:</strong> {cake.customDetails.filling}</p>}
+                                  {cake.customDetails.customText && (
+                                    <p className="col-span-2"><strong>✍️ Yozuv:</strong> "{cake.customDetails.customText}"</p>
+                                  )}
+                                </div>
+                              ) : (
+                                <p className="text-xs">{cake.description}</p>
+                              )}
+
+                              {photos.length > 0 && (
+                                <div className="pt-2 border-t border-[#2B1810]/10 flex items-center gap-2">
+                                  <span className="text-[11px] font-bold text-[#6B5B52]">Namuna rasmlar:</span>
+                                  <div className="flex gap-2">
+                                    {photos.map((img: string, pIdx: number) => (
+                                      <img
+                                        key={pIdx}
+                                        src={img}
+                                        alt="Tort namunasi"
+                                        className="w-12 h-12 object-cover rounded-xl border border-[#2B1810]/20 shadow-xs"
+                                      />
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+
+                  {/* Standard Orders List */}
+                  {orders.length > 0 && orders.map((order) => {
+
                   const isPickup = order.deliveryType === 'PICKUP';
                   const isCompleted = order.status === 'COMPLETED';
                   const isDelivering = order.status === 'DELIVERING';
@@ -761,9 +933,11 @@ export const OrderTrackingModal: React.FC<OrderTrackingModalProps> = ({ isOpen, 
 
                     </div>
                   );
-                })
+                })}
+              </>
               )}
             </div>
+
 
           </div>
 

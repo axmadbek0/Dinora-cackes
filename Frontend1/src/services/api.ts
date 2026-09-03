@@ -178,6 +178,29 @@ export const createCustomCake = async (payload: CreateCustomCakePayload): Promis
   }
 };
 
+export const fetchUserCustomCakes = async (phoneOrTelegramId?: string): Promise<any[]> => {
+  try {
+    const response = await apiClient.get<any>('/custom-cakes/my', {
+      params: { query: phoneOrTelegramId, phone: phoneOrTelegramId },
+    });
+    const data = Array.isArray(response.data) ? response.data : response.data?.data;
+    if (Array.isArray(data)) return data;
+    return [];
+  } catch (error) {
+    try {
+      const response2 = await apiClient.get<any>('/custom-cakes', {
+        params: { query: phoneOrTelegramId, phone: phoneOrTelegramId },
+      });
+      const data2 = Array.isArray(response2.data) ? response2.data : response2.data?.data;
+      if (Array.isArray(data2)) return data2;
+      return [];
+    } catch {
+      return [];
+    }
+  }
+};
+
+
 
 export const uploadOrderReceipt = async (orderId: string, receiptPhoto: string): Promise<Order> => {
   try {

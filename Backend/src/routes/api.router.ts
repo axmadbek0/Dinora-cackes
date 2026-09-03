@@ -194,13 +194,20 @@ apiRouter.put(
 );
 
 // --- Custom Cake Requests API ---
-apiRouter.get('/custom-cakes', authenticateJWT, requireAdmin, asyncHandler(customCakeController.getRequests));
+apiRouter.get('/custom-cakes/my', asyncHandler(customCakeController.getRequests));
+apiRouter.get('/custom-cakes', (req, res, next) => {
+  if (req.query.query || req.query.phone || req.query.telegramId || req.query.search || req.query.id) {
+    return customCakeController.getRequests(req, res);
+  }
+  return authenticateJWT(req, res, () => requireAdmin(req, res, () => customCakeController.getRequests(req, res)));
+});
 apiRouter.get('/custom-cakes/:id', asyncHandler(customCakeController.getRequestById));
 apiRouter.post(
   '/custom-cakes',
   validate(createCustomCakeSchema),
   asyncHandler(customCakeController.createRequest)
 );
+
 apiRouter.patch(
   '/custom-cakes/:id/status',
   authenticateJWT,
